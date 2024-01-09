@@ -1,0 +1,19 @@
+spring:
+  profiles:
+    active: prd
+
+  datasource:
+    hikari:
+      minimum-idle: 1
+      maximum-pool-size: 1
+
+
+rest-template:
+  readTimeout: 10000
+  connectionTimeout: 10000
+  password: 112023
+  protocol: TLS
+  maxRetry: 999999
+  retryInterval: 5
+  keyStoreInstance: PKCS12
+  classPath: classpath:COPPETEC2024.pfx

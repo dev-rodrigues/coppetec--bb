@@ -1,0 +1,25 @@
+
+spring:
+  datasource:
+    url: jdbc:sqlserver://146.164.65.215:1433;database=COPPETEC
+    username: sa
+    password: segredo.3#
+    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.SQLServer2008Dialect
+
+
+bb:
+  autenticacao:
+    autorizacao: Basic ZXlKcFpDSTZJamRrTVdJNE1UQXRNRGc0TnkwME9XUm1MVGc1WVdVdE5qZG1NaUlzSW1OdlpHbG5iMUIxWW14cFkyRmtiM0lpT2pBc0ltTnZaR2xuYjFOdlpuUjNZWEpsSWpvM01qSXlOU3dpYzJWeGRXVnVZMmxoYkVsdWMzUmhiR0ZqWVc4aU9qRjk6ZXlKcFpDSTZJbUpqTVdNMU1qVXRaRGhsWlMwMFpqWTBMVGhtWTJJdE1EVTVNRE15SWl3aVkyOWthV2R2VUhWaWJHbGpZV1J2Y2lJNk1Dd2lZMjlrYVdkdlUyOW1kSGRoY21VaU9qY3lNakkxTENKelpYRjFaVzVqYVdGc1NXNXpkR0ZzWVdOaGJ5STZNU3dpYzJWeGRXVnVZMmxoYkVOeVpXUmxibU5wWVd3aU9qRXNJbUZ0WW1sbGJuUmxJam9pYUc5dGIyeHZaMkZqWVc4aUxDSnBZWFFpT2pFMk9USTVNREV4TkRJM05UVjk=
+    chaveAplicacao: e0725988fdc8f971f5c541b71087cc37
+    ambiente: gw-dev-app-key
+  endpoints:
+    autenticar: https://oauth.hm.bb.com.br/oauth/token
+    buscarSolicitacao: https://api.hm.bb.com.br/pagamentos-lote/v1/{id}/solicitacao
+    buscarTransferencia: https://api.hm.bb.com.br/pagamentos-lote/v1/transferencias/{id}
+    consultar: https://api.hm.bb.com.br/pagamentos-lote/v1/lotes-transferencias
+    transferir: https://api.hm.bb.com.br/pagamentos-lote/v1/lotes-transferencias
+    lotesTransferencias: https://api.hm.bb.com.br/pagamentos-lote/v1/lotes-transferencias

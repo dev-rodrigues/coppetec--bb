@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+
+<properties>
+    <entry key="[COPPETEC].[bancoDoBrasil_remessa].[getRemessaEletronicaPendente]">
+        <![CDATA[
+            SELECT	*
+            FROM 	[COPPETEC].[bancoDoBrasil_remessa].[getRemessaEletronicaPendente]()
+        ]]>
+    </entry>
+
+    <entry key="[bancoDoBrasil_remessa].[getRemessaEletronicaPendente_Lancamentos]">
+        <![CDATA[
+            SELECT
+                banco
+            ,	agenciaDebito
+            ,	agenciaDebitoDigito
+            ,	contaDebito
+            ,	contaDebitoDigito
+            ,	contaFonte
+            ,	tipoPagamento
+            ,	numeroCOMPE
+            ,	numeroISPB
+            ,	beneficiarioBanco
+            ,	beneficiarioAgencia
+            ,	beneficiarioContaCorrente
+            ,	beneficiarioContaCorrenteDV
+            ,	beneficiarioCPF
+            ,	beneficiarioCNPJ
+            ,	transferenciaData
+            ,	transferenciaValor
+            ,	documentoDebito
+            ,	documentoCredito
+            ,	codigoFinalidadeDOC
+            ,	codigoFinalidadeTED
+            ,	numeroDepositoJudicial
+            ,	descricaoTransferencia
+            ,   numeroContratoPagamento
+            FROM    [COPPETEC].[bancoDoBrasil_remessa].[getRemessaEletronicaPendente_Lancamentos](?1, ?2)
+        ]]>
+    </entry>
+</properties>

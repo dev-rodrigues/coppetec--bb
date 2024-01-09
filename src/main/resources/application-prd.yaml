@@ -1,0 +1,27 @@
+
+spring:
+  datasource:
+    url: jdbc:sqlserver://146.164.65.214:1433;database=COPPETEC
+    username: log_3v3nt0$
+    password: log3v3nt0$.Huiophg
+    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.SQLServer2008Dialect
+
+
+bb:
+  autenticacao:
+    autorizacao: Basic ZXlKcFpDSTZJbU16TXpsa01EVXROelUzWXkwMFlqYzRMV0prTXpndFptUTRPR1FpTENKamIyUnBaMjlRZFdKc2FXTmhaRzl5SWpvd0xDSmpiMlJwWjI5VGIyWjBkMkZ5WlNJNk5qQXpNallzSW5ObGNYVmxibU5wWVd4SmJuTjBZV3hoWTJGdklqb3lmUTpleUpwWkNJNklqUXpZalF4WkRJdE5EQTRNaTAwTmpaakxUa3lJaXdpWTI5a2FXZHZVSFZpYkdsallXUnZjaUk2TUN3aVkyOWthV2R2VTI5bWRIZGhjbVVpT2pZd016STJMQ0p6WlhGMVpXNWphV0ZzU1c1emRHRnNZV05oYnlJNk1pd2ljMlZ4ZFdWdVkybGhiRU55WldSbGJtTnBZV3dpT2pFc0ltRnRZbWxsYm5SbElqb2ljSEp2WkhWallXOGlMQ0pwWVhRaU9qRTNNREk1TXpFeU16a3lOVGg5
+    chaveAplicacao: c125f3dc9ad639a41fa28a1e31c33d6b
+    ambiente: gw-dev-app-key
+  endpoints:
+    autenticar: https://oauth.bb.com.br/oauth/token
+    buscarSolicitacao: https://api-ip.bb.com.br/pagamentos-lote/v1/{id}/solicitacao
+    buscarTransferencia: https://api-ip.bb.com.br/pagamentos-lote/v1/transferencias/{id}
+    consultar: https://api-ip.bb.com.br/pagamentos-lote/v1/lotes-transferencias
+    transferir: https://api-ip.bb.com.br/pagamentos-lote/v1/lotes-transferencias
+    lotesTransferencias: https://api-ip.bb.com.br/pagamentos-lote/v1/lotes-transferencias
+    liberarLote: https://api-ip.bb.com.br/pagamentos-lote/v1/liberar-pagamentos
+    extrato: https://api-ip.bb.com.br/extratos/v1/conta-corrente/{agencia}/conta/{conta}
