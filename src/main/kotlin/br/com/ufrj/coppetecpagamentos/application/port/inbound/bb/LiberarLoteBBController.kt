@@ -1,4 +1,4 @@
-package br.com.ufrj.coppetecpagamentos.application.port.inbound
+package br.com.ufrj.coppetecpagamentos.application.port.inbound.bb
 
 import br.com.ufrj.coppetecpagamentos.infrastruscture.http.dto.request.BBLiberacaoLoteRequest
 import br.com.ufrj.coppetecpagamentos.infrastruscture.http.dto.response.BBLiberacaoLoteResponse

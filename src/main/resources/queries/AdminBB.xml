@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+
+<properties>
+    <entry key="[COPPETEC].[bancoDoBrasil_remessa].[consultaLoteEnviado]">
+        <![CDATA[
+            SELECT 		l.id
+                    ,	l.dataHora
+                    ,	l.estadoRequisicao
+                    ,	er.descricao
+                    ,	l.quantidadeTransferencias
+                    ,	l.valorTransferencias
+                    ,	l.quantidadeTransferenciasValidas
+                    ,	l.valorTransferenciasValidas
+            FROM 		COPPETEC.bancoDoBrasil_remessa.lote 			l
+            JOIN 		COPPETEC.bancoDoBrasil_remessa.estadoRequisicao	er
+                    ON 	l.estadoRequisicao = er.id
+
+            ORDER BY	l.id desc
+        ]]>
+    </entry>
+
+    <entry key="[COPPETEC].[bancoDoBrasil_remessa].[consultaTransferenciaDoLote]">
+        <![CDATA[
+
+            SELECT
+                        t.id
+                    ,	t.lote
+                    ,	t.lancamento
+                    ,	t.estadoPagamento	as estadoPagamentoId
+		            ,	te.estadoPagamento as estadoPagamento
+		            ,	te.descricao as estadoPagamentoDescricao
+                    ,	t.identificadorTransferencia
+                    ,	t.tipoCredito
+                    ,	tc.descricao
+                    , 	t.dataPagamento
+                    ,	t.valorPagamento
+                    ,	t.documentoDebito
+                    ,	t.indicadorAceite
+                    ,	t.cnpjBeneficiario
+                    ,	t.cpfBeneficiario
+                    ,	t.agenciaCredito
+                    ,	t.contaCorrenteCredito
+                    ,	t.numeroISPB
+                    ,	t.numeroCOMPE
+            FROM 		COPPETEC.bancoDoBrasil_remessa.transferencia t
+            JOIN		COPPETEC.bancoDoBrasil_remessa.transferenciaEstado te
+                    ON	te.id = t.estadoPagamento
+
+            JOIN 		COPPETEC.bancoDoBrasil_remessa.tipoCredito tc
+                    ON	tc.codigo = t.tipoCredito
+
+            WHERE		t.lote = ?1
+
+        ]]>
+    </entry>
+
+    <entry key="[COPPETEC].[bancoDoBrasil_remessa].[logLote]">
+        <![CDATA[
+            SELECT 		ll.id
+                    ,	ll.lote
+                    ,	ll.httpCodigo
+                    ,	ll.codigo_erro
+                    ,	ll.mensagem_erro
+                    ,	ll.ocorrencia
+                    , 	ll.payload
+            FROM		COPPETEC.bancoDoBrasil_remessa.loteLog ll
+            where 		ll.lote = ?1
+        ]]>
+    </entry>
+
+    <entry key="[COPPETEC].[bancoDoBrasil_remessa].[erroTransferencia]">
+        <![CDATA[
+            SELECT 		te.id
+                    ,	te.transferenciaId
+                    ,	te.codigoErro
+                    ,	edv.descricao
+            FROM 		COPPETEC.bancoDoBrasil_remessa.transferenciaErro te
+            JOIN		COPPETEC.bancoDoBrasil_remessa.errosDeValidacao edv
+                    ON	te.codigoErro = edv.codigoErro
+            WHERE te.transferenciaId = ?1
+        ]]>
+    </entry>
+</properties>

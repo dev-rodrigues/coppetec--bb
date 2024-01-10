@@ -168,10 +168,19 @@ class BBPortImpl(
             }
 
             CONSULTAR_EXTRATO -> {
-                endpoint = bBProperties.endpoints.extrato
-                logMessage = "URL DE CONSULTA DE TRANSFERENCIAS: "
+                endpoint = bBProperties.endpoints.baseUrl
+                logMessage = "URL DE CONSULTA DE TRANSFERENCIAS: {}"
                 logger.info(logMessage, endpoint)
-                val url = buildUri(endpoint, maps)
+
+                val agencia = maps["agencia"]
+                val conta = maps["conta"]
+
+                val uriAux = UriComponentsBuilder.fromHttpUrl(endpoint)
+                    .path("/extratos/v1/conta-corrente/agencia/{agencia}/conta/{conta}")
+                    .buildAndExpand(mapOf("agencia" to agencia, "conta" to conta))
+                    .toUriString()
+
+                val url = buildUri(uriAux, emptyMap())
                 logger.info("URL DE CONSULTA DO EXTRATO: {}", url)
                 return url
             }

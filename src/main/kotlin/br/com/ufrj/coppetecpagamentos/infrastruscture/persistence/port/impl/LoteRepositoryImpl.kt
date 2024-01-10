@@ -1,0 +1,36 @@
+package br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.port.impl
+
+import br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.entity.LogLoteEnviadoEntity
+import br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.entity.LoteEnviadoEntity
+import br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.port.LoteRepository
+import org.springframework.context.annotation.PropertySource
+import org.springframework.core.env.Environment
+import org.springframework.stereotype.Component
+import org.springframework.transaction.annotation.EnableTransactionManagement
+import java.math.BigInteger
+import javax.persistence.EntityManager
+import javax.persistence.PersistenceContext
+
+@Component
+@EnableTransactionManagement
+@PropertySource("classpath:/queries/AdminBB.xml")
+class LoteRepositoryImpl(
+    private val queries: Environment,
+    @PersistenceContext
+    private val em: EntityManager
+) : LoteRepository {
+    override fun findAll(): List<LoteEnviadoEntity> {
+        val query = queries.getProperty("[COPPETEC].[bancoDoBrasil_remessa].[consultaLoteEnviado]")
+        val nativeQuery = em.createNativeQuery(query)
+        val result = nativeQuery.resultList as List<Array<Any>>
+        return LoteEnviadoEntity.map(result)
+    }
+
+    override fun findLogBy(loteId: BigInteger): List<LogLoteEnviadoEntity> {
+        val query = queries.getProperty("[COPPETEC].[bancoDoBrasil_remessa].[logLote]")
+        val nativeQuery = em.createNativeQuery(query)
+        nativeQuery.setParameter(1, loteId)
+        val result = nativeQuery.resultList as List<Array<Any>>
+        return LogLoteEnviadoEntity.map(result)
+    }
+}

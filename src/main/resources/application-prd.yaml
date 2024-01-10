@@ -17,6 +17,7 @@ bb:
     chaveAplicacao: c125f3dc9ad639a41fa28a1e31c33d6b
     ambiente: gw-dev-app-key
   endpoints:
+    baseUrl: https://api-ip.bb.com.br
     autenticar: https://oauth.bb.com.br/oauth/token
     buscarSolicitacao: https://api-ip.bb.com.br/pagamentos-lote/v1/{id}/solicitacao
     buscarTransferencia: https://api-ip.bb.com.br/pagamentos-lote/v1/transferencias/{id}

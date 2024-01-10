@@ -18,6 +18,7 @@ data class AutenticacaoProperties(
 )
 
 data class EndpointsProperties(
+    val baseUrl: String,
     val autenticar: String,
     val buscarSolicitacao: String,
     val buscarTransferencia: String,
