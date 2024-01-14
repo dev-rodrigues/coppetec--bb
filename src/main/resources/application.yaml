@@ -1,6 +1,8 @@
 server:
   port: 9991
 spring:
+  application:
+    name: bb-coppetec
   profiles:
     active: prd
 
