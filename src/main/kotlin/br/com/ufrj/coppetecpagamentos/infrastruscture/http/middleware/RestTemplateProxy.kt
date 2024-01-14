@@ -38,6 +38,8 @@ class RestTemplateProxy(
             try {
                 return consumer.get()
             } catch (e: Exception) {
+                logger.info("error $e")
+
                 if (isRetryableException(e) && retryCount < restTemplateProperties.maxRetry) {
                     logRetryWarning(
                         e = e,

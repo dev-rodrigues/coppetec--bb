@@ -1,3 +1,5 @@
+server:
+  port: 9991
 spring:
   profiles:
     active: prd
@@ -17,3 +19,23 @@ rest-template:
   retryInterval: 5
   keyStoreInstance: PKCS12
   classPath: classpath:COPPETEC2024.pfx
+
+
+management:
+  endpoint:
+    prometheus:
+      enabled: true
+    health:
+      enabled: true
+      show-details: always
+  endpoints:
+    jmx:
+      exposure:
+        include: '*'
+    web:
+      exposure:
+        include: '*'
+      base-path: /actuator
+      cors:
+        allowed-origins: "*"
+    enabled-by-default: false
