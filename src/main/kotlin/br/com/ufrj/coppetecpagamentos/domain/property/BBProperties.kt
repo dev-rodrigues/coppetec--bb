@@ -6,7 +6,9 @@ import org.springframework.boot.context.properties.ConstructorBinding
 @ConstructorBinding
 @ConfigurationProperties(prefix = "bb")
 data class BBProperties(
-    val autenticacao: AutenticacaoProperties,
+    val ambiente: String,
+    val autenticacaoTransferencia: AutenticacaoProperties,
+    val autenticacaoExtrato: AutenticacaoProperties,
     val endpoints: EndpointsProperties
 )
 
@@ -14,7 +16,6 @@ data class BBProperties(
 data class AutenticacaoProperties(
     val autorizacao: String,
     val chaveAplicacao: String,
-    val ambiente: String
 )
 
 data class EndpointsProperties(

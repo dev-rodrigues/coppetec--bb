@@ -14,3 +14,8 @@ enum class TipoHeader {
     AUTENTICACAO,
     CONSULTA_AUTENTICADO
 }
+
+enum class API {
+    TRANSFERENCIA,
+    EXTRATO
+}

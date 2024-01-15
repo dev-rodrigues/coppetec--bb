@@ -14,10 +14,13 @@ spring:
 #        use_sql_comments: true
 
 bb:
-  autenticacao:
+  ambiente: gw-dev-app-key
+  autenticacaoExtrato:
+    autorizacao: Basic ZXlKcFpDSTZJalVpTENKamIyUnBaMjlRZFdKc2FXTmhaRzl5SWpvd0xDSmpiMlJwWjI5VGIyWjBkMkZ5WlNJNk5qRTFOelVzSW5ObGNYVmxibU5wWVd4SmJuTjBZV3hoWTJGdklqb3lmUTpleUpwWkNJNklpSXNJbU52WkdsbmIxQjFZbXhwWTJGa2IzSWlPakFzSW1OdlpHbG5iMU52Wm5SM1lYSmxJam8yTVRVM05Td2ljMlZ4ZFdWdVkybGhiRWx1YzNSaGJHRmpZVzhpT2pJc0luTmxjWFZsYm1OcFlXeERjbVZrWlc1amFXRnNJam94TENKaGJXSnBaVzUwWlNJNkluQnliMlIxWTJGdklpd2lhV0YwSWpveE56QTBPVGs1T0RjNE9EazBmUQ==
+    chaveAplicacao: 61817f8f770721883158d0cb0ce1ab26
+  autenticacaoTransferencia:
     autorizacao: Basic ZXlKcFpDSTZJbU16TXpsa01EVXROelUzWXkwMFlqYzRMV0prTXpndFptUTRPR1FpTENKamIyUnBaMjlRZFdKc2FXTmhaRzl5SWpvd0xDSmpiMlJwWjI5VGIyWjBkMkZ5WlNJNk5qQXpNallzSW5ObGNYVmxibU5wWVd4SmJuTjBZV3hoWTJGdklqb3lmUTpleUpwWkNJNklqUXpZalF4WkRJdE5EQTRNaTAwTmpaakxUa3lJaXdpWTI5a2FXZHZVSFZpYkdsallXUnZjaUk2TUN3aVkyOWthV2R2VTI5bWRIZGhjbVVpT2pZd016STJMQ0p6WlhGMVpXNWphV0ZzU1c1emRHRnNZV05oYnlJNk1pd2ljMlZ4ZFdWdVkybGhiRU55WldSbGJtTnBZV3dpT2pFc0ltRnRZbWxsYm5SbElqb2ljSEp2WkhWallXOGlMQ0pwWVhRaU9qRTNNREk1TXpFeU16a3lOVGg5
     chaveAplicacao: c125f3dc9ad639a41fa28a1e31c33d6b
-    ambiente: gw-dev-app-key
   endpoints:
     baseUrl: https://api-ip.bb.com.br
     autenticar: https://oauth.bb.com.br/oauth/token

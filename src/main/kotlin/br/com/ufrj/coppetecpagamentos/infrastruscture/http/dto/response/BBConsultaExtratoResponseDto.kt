@@ -1,7 +1,6 @@
 package br.com.ufrj.coppetecpagamentos.infrastruscture.http.dto.response
 
 import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
 import java.math.BigDecimal
 
 data class BBConsultaExtratoResponseDto(
@@ -23,8 +22,8 @@ data class BBConsultaExtratoResponseDto(
     @SerialName("quantidadeTotalRegistro")
     val quantidadeTotalRegistro: Int,
 
-//    @SerialName("listaLancamento")
-//    val listaLancamento: Lancamento
+    @SerialName("listaLancamento")
+    val listaLancamento: List<Lancamento>
 )
 
 data class Lancamento(

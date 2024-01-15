@@ -1,5 +1,6 @@
 package br.com.ufrj.coppetecpagamentos.infrastruscture.http.port.impl
 
+import br.com.ufrj.coppetecpagamentos.domain.model.API
 import br.com.ufrj.coppetecpagamentos.domain.model.HttpUri
 import br.com.ufrj.coppetecpagamentos.domain.model.HttpUri.*
 import br.com.ufrj.coppetecpagamentos.domain.model.TipoHeader
@@ -38,12 +39,14 @@ class BBPortImpl(
 
     private val logger = LoggerFactory.getLogger(BBPortImpl::class.java)
 
-    override fun autenticar(): ResponseEntity<BBAutenticacaoResponseDto> {
+    override fun autenticar(
+        api: API
+    ): ResponseEntity<BBAutenticacaoResponseDto> {
         return proxy.execute {
             client.exchange(
-                getURI(AUTENTICAR, emptyList(), emptyMap()),
+                getURI(AUTENTICAR, emptyList(), emptyMap(), api),
                 POST,
-                getParameter(),
+                getParameter(api),
                 BBAutenticacaoResponseDto::class.java
             )
         }
@@ -52,7 +55,7 @@ class BBPortImpl(
     override fun liberarLote(body: BBLiberacaoLoteRequest, token: String): ResponseEntity<BBLiberacaoLoteResponse> {
         return proxy.execute {
             client.exchange(
-                getURI(ENVIAR_LOTE, emptyList(), emptyMap()),
+                getURI(ENVIAR_LOTE, emptyList(), emptyMap(), API.TRANSFERENCIA),
                 POST,
                 getParameter(body, token),
                 BBLiberacaoLoteResponse::class.java
@@ -63,7 +66,7 @@ class BBPortImpl(
     override fun consultarLote(idLote: BigInteger, accessToken: String): ResponseEntity<BBConsultaLoteResponseDto> {
         return proxy.execute {
             client.exchange(
-                getURI(CONSULTAR_LOTE, listOf(idLote), emptyMap()),
+                getURI(CONSULTAR_LOTE, listOf(idLote), emptyMap(), API.TRANSFERENCIA),
                 GET,
                 getParameter(accessToken),
                 BBConsultaLoteResponseDto::class.java
@@ -76,7 +79,7 @@ class BBPortImpl(
     ): BBConsultaTransferenciaResponseDto {
         val response = proxy.execute {
             client.exchange(
-                getURI(CONSULTAR_TRANSFERENCIA, listOf(identificadorTransferencia), emptyMap()),
+                getURI(CONSULTAR_TRANSFERENCIA, listOf(identificadorTransferencia), emptyMap(), API.TRANSFERENCIA),
                 GET,
                 getParameter(accessToken),
                 String::class.java
@@ -86,17 +89,15 @@ class BBPortImpl(
         return formatBBConsultaTransferenciaResponseDto(response)
     }
 
-    override fun consultarExtrato(agencia: String, conta: String, token: String): String {
-        val response = proxy.execute {
+    override fun consultarExtrato(agencia: String, conta: String, token: String): ResponseEntity<BBConsultaExtratoResponseDto> {
+        return proxy.execute {
             client.exchange(
-                getURI(CONSULTAR_EXTRATO, listOf(), mapOf("agencia" to agencia, "conta" to conta)),
+                getURI(CONSULTAR_EXTRATO, listOf(), mapOf("agencia" to agencia, "conta" to conta), API.EXTRATO),
                 GET,
                 getParameter(token),
-                String::class.java
+                BBConsultaExtratoResponseDto::class.java
             )
         }
-
-        return response.body!!
     }
 
     override fun transferir(
@@ -106,7 +107,7 @@ class BBPortImpl(
         return proxy.execute(
             {
                 client.exchange(
-                    getURI(ENVIAR_LOTE, emptyList(), emptyMap()),
+                    getURI(ENVIAR_LOTE, emptyList(), emptyMap(), API.TRANSFERENCIA),
                     POST,
                     getParameter(loteDeEnvio, token),
                     BBTransferenciaResponseDto::class.java
@@ -133,7 +134,7 @@ class BBPortImpl(
         }
     }
 
-    private fun getURI(typeURI: HttpUri, parameters: List<Any>, maps: Map<String, String>): String {
+    private fun getURI(typeURI: HttpUri, parameters: List<Any>, maps: Map<String, String>, api: API): String {
         val endpoint: String
         val logMessage: String
 
@@ -162,7 +163,7 @@ class BBPortImpl(
                 endpoint = bBProperties.endpoints.consultar
                 logMessage = "URL DE CONSULTA DE TRANSFERENCIAS: "
                 logger.info(logMessage, endpoint)
-                val url = buildUri(endpoint, maps)
+                val url = buildUri(endpoint, maps, api)
                 logger.info("URL DE CONSULTA DE TRANSFERENCIAS: {}", url)
                 return url
             }
@@ -180,7 +181,7 @@ class BBPortImpl(
                     .buildAndExpand(mapOf("agencia" to agencia, "conta" to conta))
                     .toUriString()
 
-                val url = buildUri(uriAux, emptyMap())
+                val url = buildUri(uriAux, emptyMap(), api)
                 logger.info("URL DE CONSULTA DO EXTRATO: {}", url)
                 return url
             }
@@ -192,7 +193,7 @@ class BBPortImpl(
 
             LIBERAR_LOTE -> {
                 endpoint = bBProperties.endpoints.liberarLote
-                val url = buildUri(endpoint, maps)
+                val url = buildUri(endpoint, maps, api)
                 logger.info("URL DE LIBERACAO DE LOTE: {}", url)
                 return url
             }
@@ -200,7 +201,7 @@ class BBPortImpl(
         }
 
         val uri = UriComponentsBuilder.fromUriString(endpoint)
-            .queryParam(bBProperties.autenticacao.ambiente, bBProperties.autenticacao.chaveAplicacao)
+            .queryParam(bBProperties.ambiente, bBProperties.autenticacaoTransferencia.chaveAplicacao)
 
         if (nonNull(parameters) && parameters.isNotEmpty()) {
             val formated = uri.buildAndExpand(parameters[0].toString()).toString()
@@ -218,10 +219,17 @@ class BBPortImpl(
         return UriComponentsBuilder.fromUriString(endpoint).queryParam("grant_type", "client_credentials").toUriString()
     }
 
-    private fun buildUri(endpoint: String, parameters: Map<String, String>): String {
+    private fun buildUri(endpoint: String, parameters: Map<String, String>, api: API): String {
         val params: MultiValueMap<String, String> = LinkedMultiValueMap()
 
-        params.add(bBProperties.autenticacao.ambiente, bBProperties.autenticacao.chaveAplicacao)
+        when (api) {
+            API.TRANSFERENCIA -> params.add(
+                bBProperties.ambiente,
+                bBProperties.autenticacaoTransferencia.chaveAplicacao
+            )
+
+            API.EXTRATO -> params.add(bBProperties.ambiente, bBProperties.autenticacaoExtrato.chaveAplicacao)
+        }
 
         if (nonNull(parameters) && parameters.isNotEmpty()) {
             for ((key, value) in parameters) {
@@ -233,8 +241,14 @@ class BBPortImpl(
         return builder.buildAndExpand().toString()
     }
 
-    private fun getParameter(): HttpEntity<MultiValueMap<String, String>?> {
-        return HttpEntity<MultiValueMap<String, String>?>(null, getHeader(AUTENTICACAO, null))
+    private fun getParameter(api: API = API.TRANSFERENCIA): HttpEntity<MultiValueMap<String, String>?> {
+        return HttpEntity<MultiValueMap<String, String>?>(
+            null, getHeader(
+                typeHeader = AUTENTICACAO,
+                token = null,
+                api = api
+            )
+        )
     }
 
     private fun getParameter(token: String): HttpEntity<MultiValueMap<String, String>?> {
@@ -255,12 +269,18 @@ class BBPortImpl(
     }
 
     private fun getHeader(
-        typeHeader: TipoHeader, token: String?
+        typeHeader: TipoHeader,
+        token: String?,
+        api: API = API.TRANSFERENCIA
     ): HttpHeaders {
         val header = HttpHeaders()
         if (typeHeader == AUTENTICACAO) {
             header.add("Content-Type", "application/x-www-form-urlencoded")
-            header.add("Authorization", bBProperties.autenticacao.autorizacao)
+
+            when (api) {
+                API.TRANSFERENCIA -> header.add("Authorization", bBProperties.autenticacaoTransferencia.autorizacao)
+                API.EXTRATO -> header.add("Authorization", bBProperties.autenticacaoExtrato.autorizacao)
+            }
         } else if (typeHeader == CONSULTA_AUTENTICADO) {
             header.contentType = MediaType.APPLICATION_JSON
             header.add("Authorization", "Bearer $token")
