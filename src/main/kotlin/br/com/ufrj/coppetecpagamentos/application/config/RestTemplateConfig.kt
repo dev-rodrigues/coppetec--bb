@@ -9,6 +9,8 @@ import org.apache.http.ssl.SSLContextBuilder
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.core.io.ClassPathResource
+import org.springframework.core.io.Resource
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory
 import org.springframework.util.ResourceUtils
 import org.springframework.web.client.RestTemplate
@@ -34,9 +36,11 @@ class RestTemplateConfig(
     )
     fun restTemplate(): RestTemplate {
         val clientStore = KeyStore.getInstance(properties.keyStoreInstance)
-        val file = ResourceUtils.getFile(properties.classPath)
 
-        clientStore.load(FileInputStream(file), properties.password.toCharArray())
+        val resource: Resource = ClassPathResource("COPPETEC2024.pfx")
+        val inputStream = resource.inputStream
+
+        clientStore.load(inputStream, properties.password.toCharArray())
 
         val sslContextBuilder = SSLContextBuilder()
         sslContextBuilder.setProtocol(properties.protocol)
