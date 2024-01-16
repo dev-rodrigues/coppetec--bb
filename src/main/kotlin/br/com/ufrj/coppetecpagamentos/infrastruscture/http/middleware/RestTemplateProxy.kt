@@ -1,6 +1,7 @@
 package br.com.ufrj.coppetecpagamentos.infrastruscture.http.middleware
 
 import br.com.ufrj.coppetecpagamentos.domain.adapter.LocalDateTimeAdapter
+import br.com.ufrj.coppetecpagamentos.domain.model.HttpUri
 import br.com.ufrj.coppetecpagamentos.domain.property.RestTemplateProperties
 import br.com.ufrj.coppetecpagamentos.infrastruscture.http.dto.request.BBTransferirRequest
 import br.com.ufrj.coppetecpagamentos.infrastruscture.http.dto.response.BBLiberarLoteErroResponseDto
@@ -8,6 +9,7 @@ import br.com.ufrj.coppetecpagamentos.infrastruscture.http.dto.response.BBTransf
 import br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.BBLoteLogRepository
 import br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.entity.BBLoteLogEntity
 import com.google.gson.GsonBuilder
+import io.prometheus.client.Counter
 import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Component
@@ -31,16 +33,33 @@ class RestTemplateProxy(
         .registerTypeAdapter(LocalDateTime::class.java, LocalDateTimeAdapter())
         .create()
 
+    private val httpRequestSuccessCounter = Counter.build()
+        .name("http_request_success_total")
+        .help("Total number of successful HTTP requests")
+        .register()
 
-    fun <Y> execute(consumer: Supplier<Y>): Y {
+    private val httpRequestErrorCounter = Counter.build()
+        .name("http_request_error_total")
+        .help("Total number of HTTP requests with errors")
+        .register()
+
+    private val httpRequestRetryCounter = Counter.build()
+        .name("http_request_retry_total")
+        .help("Total number of retried HTTP requests")
+        .register()
+
+    fun <Y> execute(consumer: Supplier<Y>, httpUri: HttpUri): Y {
         var retryCount = 0
         while (true) {
             try {
-                return consumer.get()
+                val success = consumer.get()
+                httpRequestSuccessCounter.inc()
+                return success as Y
             } catch (e: Exception) {
                 logger.info("error $e")
 
                 if (isRetryableException(e) && retryCount < restTemplateProperties.maxRetry) {
+                    httpRequestRetryCounter.inc()
                     logRetryWarning(
                         e = e,
                         retryAttempt = retryCount + 1,
@@ -52,6 +71,7 @@ class RestTemplateProxy(
 
                     retryCount++
                 } else {
+                    httpRequestErrorCounter.inc()
                     logErrorAndThrowException(e)
                 }
             }

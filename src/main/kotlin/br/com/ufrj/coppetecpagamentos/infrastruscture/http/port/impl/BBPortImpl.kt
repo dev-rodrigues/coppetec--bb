@@ -42,67 +42,78 @@ class BBPortImpl(
     override fun autenticar(
         api: API
     ): ResponseEntity<BBAutenticacaoResponseDto> {
-        return proxy.execute {
-            client.exchange(
-                getURI(AUTENTICAR, emptyList(), emptyMap(), api),
-                POST,
-                getParameter(api),
-                BBAutenticacaoResponseDto::class.java
-            )
-        }
+        return proxy.execute(
+            {
+                client.exchange(
+                    getURI(AUTENTICAR, emptyList(), emptyMap(), api),
+                    POST,
+                    getParameter(api),
+                    BBAutenticacaoResponseDto::class.java
+                )
+            }, AUTENTICAR
+        )
     }
 
     override fun liberarLote(body: BBLiberacaoLoteRequest, token: String): ResponseEntity<BBLiberacaoLoteResponse> {
-        return proxy.execute {
-            client.exchange(
-                getURI(ENVIAR_LOTE, emptyList(), emptyMap(), API.TRANSFERENCIA),
-                POST,
-                getParameter(body, token),
-                BBLiberacaoLoteResponse::class.java
-            )
-        }
+        return proxy.execute(
+            {
+                client.exchange(
+                    getURI(ENVIAR_LOTE, emptyList(), emptyMap(), API.TRANSFERENCIA),
+                    POST,
+                    getParameter(body, token),
+                    BBLiberacaoLoteResponse::class.java
+                )
+            }, LIBERAR_LOTE
+        )
     }
 
     override fun consultarLote(idLote: BigInteger, accessToken: String): ResponseEntity<BBConsultaLoteResponseDto> {
-        return proxy.execute {
-            client.exchange(
-                getURI(CONSULTAR_LOTE, listOf(idLote), emptyMap(), API.TRANSFERENCIA),
-                GET,
-                getParameter(accessToken),
-                BBConsultaLoteResponseDto::class.java
-            )
-        }
+        return proxy.execute(
+            {
+                client.exchange(
+                    getURI(CONSULTAR_LOTE, listOf(idLote), emptyMap(), API.TRANSFERENCIA),
+                    GET,
+                    getParameter(accessToken),
+                    BBConsultaLoteResponseDto::class.java
+                )
+            }, CONSULTAR_LOTE
+        )
     }
 
     override fun consultarTransferencia(
         identificadorTransferencia: BigInteger, accessToken: String
     ): BBConsultaTransferenciaResponseDto {
-        val response = proxy.execute {
-            client.exchange(
-                getURI(CONSULTAR_TRANSFERENCIA, listOf(identificadorTransferencia), emptyMap(), API.TRANSFERENCIA),
-                GET,
-                getParameter(accessToken),
-                String::class.java
-            )
-        }
+        val response = proxy.execute(
+            {
+                client.exchange(
+                    getURI(CONSULTAR_TRANSFERENCIA, listOf(identificadorTransferencia), emptyMap(), API.TRANSFERENCIA),
+                    GET,
+                    getParameter(accessToken),
+                    String::class.java
+                )
+            }, CONSULTAR_TRANSFERENCIA
+        )
 
         return formatBBConsultaTransferenciaResponseDto(response)
     }
 
-    override fun consultarExtrato(agencia: String, conta: String, token: String): ResponseEntity<BBConsultaExtratoResponseDto> {
-        return proxy.execute {
-            client.exchange(
-                getURI(CONSULTAR_EXTRATO, listOf(), mapOf("agencia" to agencia, "conta" to conta), API.EXTRATO),
-                GET,
-                getParameter(token),
-                BBConsultaExtratoResponseDto::class.java
-            )
-        }
+    override fun consultarExtrato(
+        agencia: String, conta: String, token: String
+    ): ResponseEntity<BBConsultaExtratoResponseDto> {
+        return proxy.execute(
+            {
+                client.exchange(
+                    getURI(CONSULTAR_EXTRATO, listOf(), mapOf("agencia" to agencia, "conta" to conta), API.EXTRATO),
+                    GET,
+                    getParameter(token),
+                    BBConsultaExtratoResponseDto::class.java
+                )
+            }, CONSULTAR_EXTRATO
+        )
     }
 
     override fun transferir(
-        loteDeEnvio: BBTransferirRequest,
-        token: String
+        loteDeEnvio: BBTransferirRequest, token: String
     ): ResponseEntity<BBTransferenciaResponseDto>? {
         return proxy.execute(
             {
@@ -112,8 +123,7 @@ class BBPortImpl(
                     getParameter(loteDeEnvio, token),
                     BBTransferenciaResponseDto::class.java
                 )
-            },
-            loteDeEnvio
+            }, loteDeEnvio
         )
     }
 
@@ -178,8 +188,7 @@ class BBPortImpl(
 
                 val uriAux = UriComponentsBuilder.fromHttpUrl(endpoint)
                     .path("/extratos/v1/conta-corrente/agencia/{agencia}/conta/{conta}")
-                    .buildAndExpand(mapOf("agencia" to agencia, "conta" to conta))
-                    .toUriString()
+                    .buildAndExpand(mapOf("agencia" to agencia, "conta" to conta)).toUriString()
 
                 val url = buildUri(uriAux, emptyMap(), api)
                 logger.info("URL DE CONSULTA DO EXTRATO: {}", url)
@@ -224,8 +233,7 @@ class BBPortImpl(
 
         when (api) {
             API.TRANSFERENCIA -> params.add(
-                bBProperties.ambiente,
-                bBProperties.autenticacaoTransferencia.chaveAplicacao
+                bBProperties.ambiente, bBProperties.autenticacaoTransferencia.chaveAplicacao
             )
 
             API.EXTRATO -> params.add(bBProperties.ambiente, bBProperties.autenticacaoExtrato.chaveAplicacao)
@@ -244,9 +252,7 @@ class BBPortImpl(
     private fun getParameter(api: API = API.TRANSFERENCIA): HttpEntity<MultiValueMap<String, String>?> {
         return HttpEntity<MultiValueMap<String, String>?>(
             null, getHeader(
-                typeHeader = AUTENTICACAO,
-                token = null,
-                api = api
+                typeHeader = AUTENTICACAO, token = null, api = api
             )
         )
     }
@@ -261,17 +267,14 @@ class BBPortImpl(
 
     private fun getParameter(@NonNull body: Any, @NonNull token: String): HttpEntity<Any> {
         return HttpEntity<Any>(
-            Gson().toJson(body),
-            getHeader(
+            Gson().toJson(body), getHeader(
                 CONSULTA_AUTENTICADO, token
             )
         )
     }
 
     private fun getHeader(
-        typeHeader: TipoHeader,
-        token: String?,
-        api: API = API.TRANSFERENCIA
+        typeHeader: TipoHeader, token: String?, api: API = API.TRANSFERENCIA
     ): HttpHeaders {
         val header = HttpHeaders()
         if (typeHeader == AUTENTICACAO) {
