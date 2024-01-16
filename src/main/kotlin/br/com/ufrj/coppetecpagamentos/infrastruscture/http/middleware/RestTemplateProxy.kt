@@ -9,7 +9,8 @@ import br.com.ufrj.coppetecpagamentos.infrastruscture.http.dto.response.BBTransf
 import br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.BBLoteLogRepository
 import br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.entity.BBLoteLogEntity
 import com.google.gson.GsonBuilder
-import io.prometheus.client.Counter
+import io.micrometer.core.instrument.Counter
+import io.micrometer.core.instrument.MeterRegistry
 import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Component
@@ -26,6 +27,7 @@ import java.util.function.Supplier
 class RestTemplateProxy(
     private val restTemplateProperties: RestTemplateProperties,
     private val bBLoteLogRepository: BBLoteLogRepository,
+    private val meterRegistry: MeterRegistry
 ) {
 
     private val logger = LoggerFactory.getLogger(RestTemplateProxy::class.java)
@@ -33,33 +35,34 @@ class RestTemplateProxy(
         .registerTypeAdapter(LocalDateTime::class.java, LocalDateTimeAdapter())
         .create()
 
-    private val httpRequestSuccessCounter = Counter.build()
-        .name("http_request_success_total")
-        .help("Total number of successful HTTP requests")
-        .register()
+    private val httpRequestSuccessCounter: Counter =
+        Counter.builder("http_request_success_total")
+            .description("Total number of successful HTTP requests")
+            .register(meterRegistry)
 
-    private val httpRequestErrorCounter = Counter.build()
-        .name("http_request_error_total")
-        .help("Total number of HTTP requests with errors")
-        .register()
+    private val httpRequestErrorCounter: Counter =
+        Counter.builder("http_request_error_total")
+            .description("Total number of HTTP requests with errors")
+            .register(meterRegistry)
 
-    private val httpRequestRetryCounter = Counter.build()
-        .name("http_request_retry_total")
-        .help("Total number of retried HTTP requests")
-        .register()
+    private val httpRequestRetryCounter: Counter =
+        Counter.builder("http_request_retry_total")
+            .description("Total number of retried HTTP requests")
+            .register(meterRegistry)
+
 
     fun <Y> execute(consumer: Supplier<Y>, httpUri: HttpUri): Y {
         var retryCount = 0
         while (true) {
             try {
                 val success = consumer.get()
-                httpRequestSuccessCounter.inc()
-                return success as Y
+                httpRequestSuccessCounter.increment()
+                return success
             } catch (e: Exception) {
                 logger.info("error $e")
 
                 if (isRetryableException(e) && retryCount < restTemplateProperties.maxRetry) {
-                    httpRequestRetryCounter.inc()
+                    httpRequestRetryCounter.increment()
                     logRetryWarning(
                         e = e,
                         retryAttempt = retryCount + 1,
@@ -71,7 +74,7 @@ class RestTemplateProxy(
 
                     retryCount++
                 } else {
-                    httpRequestErrorCounter.inc()
+                    httpRequestErrorCounter.increment()
                     logErrorAndThrowException(e)
                 }
             }
