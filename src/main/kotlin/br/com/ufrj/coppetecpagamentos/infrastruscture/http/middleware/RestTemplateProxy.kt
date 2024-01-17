@@ -35,46 +35,43 @@ class RestTemplateProxy(
         .registerTypeAdapter(LocalDateTime::class.java, LocalDateTimeAdapter())
         .create()
 
-    private val httpRequestSuccessCounter: Counter =
-        Counter.builder("http_request_success_total")
-            .description("Total number of successful HTTP requests")
-            .register(meterRegistry)
-
-    private val httpRequestErrorCounter: Counter =
-        Counter.builder("http_request_error_total")
-            .description("Total number of HTTP requests with errors")
-            .register(meterRegistry)
-
-    private val httpRequestRetryCounter: Counter =
-        Counter.builder("http_request_retry_total")
-            .description("Total number of retried HTTP requests")
-            .register(meterRegistry)
-
-
     fun <Y> execute(consumer: Supplier<Y>, httpUri: HttpUri): Y {
         var retryCount = 0
         while (true) {
             try {
                 val success = consumer.get()
-                httpRequestSuccessCounter.increment()
+
+                Counter
+                    .builder("http_${httpUri.name}_request_success_total")
+                    .description("Total number of successful HTTP requests")
+                    .register(meterRegistry).increment()
+
                 return success
             } catch (e: Exception) {
-                logger.info("error $e")
+                logger.warn("error $e")
 
                 if (isRetryableException(e) && retryCount < restTemplateProperties.maxRetry) {
-                    httpRequestRetryCounter.increment()
+
+                    Counter.builder("http_${httpUri.name}_request_retry_total")
+                        .description("Total number of retried HTTP requests")
+                        .register(meterRegistry)
+
                     logRetryWarning(
                         e = e,
                         retryAttempt = retryCount + 1,
                         sleepInSeconds = restTemplateProperties.retryInterval
                     )
+
                     sleepInSeconds(
                         seconds = restTemplateProperties.retryInterval
                     )
 
                     retryCount++
                 } else {
-                    httpRequestErrorCounter.increment()
+                    Counter.builder("http_${httpUri.name}_request_error_total")
+                        .description("Total number of HTTP requests with errors")
+                        .register(meterRegistry)
+
                     logErrorAndThrowException(e)
                 }
             }
@@ -179,6 +176,8 @@ class RestTemplateProxy(
     @Throws(java.lang.RuntimeException::class)
     private fun logErrorAndThrowException(e: java.lang.Exception) {
         logger.error("PROXY --> Número máximo de tentativas de reexecução atingido. Erro: {}", getErrorMessage(e))
+        logger.info("PROXY --> Número máximo de tentativas de reexecução atingido. Erro: {}", getErrorMessage(e))
+
         throw java.lang.RuntimeException(
             "PROXY --> Número máximo de tentativas de reexecução atingido. Erro: " + getErrorMessage(
                 e
