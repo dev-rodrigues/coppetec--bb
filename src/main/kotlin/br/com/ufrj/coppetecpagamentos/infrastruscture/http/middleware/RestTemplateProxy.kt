@@ -43,6 +43,7 @@ class RestTemplateProxy(
 
                 Counter
                     .builder("http_${httpUri.name}_request_success_total")
+                    .tags("http_status", "200")
                     .description("Total number of successful HTTP requests")
                     .register(meterRegistry).increment()
 
@@ -52,7 +53,15 @@ class RestTemplateProxy(
 
                 if (isRetryableException(e) && retryCount < restTemplateProperties.maxRetry) {
 
-                    Counter.builder("http_${httpUri.name}_request_retry_total")
+                    val httpCode = if (e is HttpClientErrorException) {
+                        e.rawStatusCode
+                    } else {
+                        500
+                    }
+
+                    Counter
+                        .builder("http_${httpUri.name}_request_retry_total")
+                        .tags("http_status", httpCode.toString())
                         .description("Total number of retried HTTP requests")
                         .register(meterRegistry)
 
@@ -69,6 +78,7 @@ class RestTemplateProxy(
                     retryCount++
                 } else {
                     Counter.builder("http_${httpUri.name}_request_error_total")
+                        .tags("http_status", "500")
                         .description("Total number of HTTP requests with errors")
                         .register(meterRegistry)
 
