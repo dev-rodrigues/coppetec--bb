@@ -16,5 +16,10 @@ interface BBPort {
     ): BBConsultaTransferenciaResponseDto
 
     fun transferir(loteDeEnvio: BBTransferirRequest, token: String): ResponseEntity<BBTransferenciaResponseDto>?
-    fun consultarExtrato(agencia: String, conta: String, token: String): ResponseEntity<BBConsultaExtratoResponseDto>
+    fun consultarExtrato(
+        numeroPaginaSolicitacao: Int?,
+        agencia: String,
+        conta: String,
+        token: String,
+    ): ResponseEntity<BBConsultaExtratoResponseDto>
 }

@@ -16,14 +16,19 @@ class ConsultarExtratoBBController(
 ) {
 
 
-    @GetMapping("/{agencia}/{conta}")
+    @GetMapping("/{agencia}/{conta}/{numeroPaginaSolicitacao}")
     fun get(
-        @PathVariable agencia: String, @PathVariable conta: String
+        @PathVariable agencia: String, @PathVariable conta: String, @PathVariable numeroPaginaSolicitacao: Int = 1
     ): ResponseEntity<BBConsultaExtratoResponseDto> {
 
         val token = bbPort.autenticar(API.EXTRATO).body?.accessToken!!
 
-        val response = bbPort.consultarExtrato(agencia, conta, token)
+        val response = bbPort.consultarExtrato(
+            agencia = agencia,
+            conta = conta,
+            token = token,
+            numeroPaginaSolicitacao = numeroPaginaSolicitacao
+        )
 
         return ResponseEntity.ok(response.body)
     }

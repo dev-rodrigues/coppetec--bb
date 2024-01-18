@@ -98,12 +98,18 @@ class BBPortImpl(
     }
 
     override fun consultarExtrato(
-        agencia: String, conta: String, token: String
+        numeroPaginaSolicitacao: Int?, agencia: String, conta: String, token: String
     ): ResponseEntity<BBConsultaExtratoResponseDto> {
         return proxy.execute(
             {
                 client.exchange(
-                    getURI(CONSULTAR_EXTRATO, listOf(), mapOf("agencia" to agencia, "conta" to conta), API.EXTRATO),
+                    getURI(
+                        CONSULTAR_EXTRATO, listOf(), mapOf(
+                            "agencia" to agencia,
+                            "conta" to conta,
+                            "numeroPaginaSolicitacao" to numeroPaginaSolicitacao.toString()
+                        ), API.EXTRATO
+                    ),
                     GET,
                     getParameter(token),
                     BBConsultaExtratoResponseDto::class.java
@@ -185,12 +191,17 @@ class BBPortImpl(
 
                 val agencia = maps["agencia"]
                 val conta = maps["conta"]
+                val numeroPaginaSolicitacao = maps["numeroPaginaSolicitacao"]
 
                 val uriAux = UriComponentsBuilder.fromHttpUrl(endpoint)
                     .path("/extratos/v1/conta-corrente/agencia/{agencia}/conta/{conta}")
                     .buildAndExpand(mapOf("agencia" to agencia, "conta" to conta)).toUriString()
 
-                val url = buildUri(uriAux, emptyMap(), api)
+                val url = buildUri(
+                    endpoint = uriAux, parameters = if (numeroPaginaSolicitacao != null) {
+                        mapOf(Pair("numeroPaginaSolicitacao", numeroPaginaSolicitacao))
+                    } else emptyMap(), api = api
+                )
                 logger.info("URL DE CONSULTA DO EXTRATO: {}", url)
                 return url
             }
