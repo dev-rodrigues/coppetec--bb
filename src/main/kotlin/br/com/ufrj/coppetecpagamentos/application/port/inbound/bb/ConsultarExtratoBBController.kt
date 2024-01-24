@@ -1,8 +1,7 @@
 package br.com.ufrj.coppetecpagamentos.application.port.inbound.bb
 
-import br.com.ufrj.coppetecpagamentos.domain.model.API
+import br.com.ufrj.coppetecpagamentos.domain.service.ExtratoService
 import br.com.ufrj.coppetecpagamentos.infrastruscture.http.dto.response.BBConsultaExtratoResponseDto
-import br.com.ufrj.coppetecpagamentos.infrastruscture.http.port.BBPort
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -12,24 +11,21 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/bb/extrato")
 class ConsultarExtratoBBController(
-    private val bbPort: BBPort
+    private val extratoService: ExtratoService
 ) {
 
 
-    @GetMapping("/{agencia}/{conta}/{numeroPaginaSolicitacao}")
+    @GetMapping("/{agencia}/{conta}")
     fun get(
-        @PathVariable agencia: String, @PathVariable conta: String, @PathVariable numeroPaginaSolicitacao: Int = 1
+        @PathVariable agencia: String,
+        @PathVariable conta: String,
     ): ResponseEntity<BBConsultaExtratoResponseDto> {
 
-        val token = bbPort.autenticar(API.EXTRATO).body?.accessToken!!
-
-        val response = bbPort.consultarExtrato(
+        val response = extratoService.getExtrato(
             agencia = agencia,
-            conta = conta,
-            token = token,
-            numeroPaginaSolicitacao = numeroPaginaSolicitacao
+            conta = conta
         )
 
-        return ResponseEntity.ok(response.body)
+        return ResponseEntity.ok(response)
     }
 }

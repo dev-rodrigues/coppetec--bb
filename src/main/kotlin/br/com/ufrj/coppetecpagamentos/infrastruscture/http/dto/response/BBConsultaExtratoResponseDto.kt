@@ -23,7 +23,7 @@ data class BBConsultaExtratoResponseDto(
     val quantidadeTotalRegistro: Int,
 
     @SerialName("listaLancamento")
-    val listaLancamento: List<Lancamento>
+    var listaLancamento: MutableList<Lancamento>
 )
 
 data class Lancamento(
