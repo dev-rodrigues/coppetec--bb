@@ -15,10 +15,10 @@ class BBConsultarLoteEnviado(
 
     private val logger: Logger = LoggerFactory.getLogger(BBConsultarLoteEnviado::class.java)
 
-    @Scheduled(
-        fixedDelay = BBEnviarLoteJob.MINUTO,
-        zone = BBEnviarLoteJob.TIME_ZONE
-    )
+//    @Scheduled(
+//        fixedDelay = BBEnviarLoteJob.MINUTO,
+//        zone = BBEnviarLoteJob.TIME_ZONE
+//    )
     fun step2() {
         logger.info("STEP 2: CONSULTAR LOTE ENVIADO")
 

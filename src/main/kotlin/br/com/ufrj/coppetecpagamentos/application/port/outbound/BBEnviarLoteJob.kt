@@ -21,10 +21,10 @@ class BBEnviarLoteJob(
         const val TIME_ZONE = "America/Sao_Paulo"
     }
 
-    @Scheduled(
-        fixedDelay = MINUTO,
-        zone = TIME_ZONE
-    )
+//    @Scheduled(
+//        fixedDelay = MINUTO,
+//        zone = TIME_ZONE
+//    )
     fun step1() {
         val remessas = envioPendentePort.getEnvioPendenteDatabase()
 

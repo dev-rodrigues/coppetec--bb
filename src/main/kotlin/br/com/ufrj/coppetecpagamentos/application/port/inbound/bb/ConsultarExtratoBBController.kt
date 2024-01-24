@@ -13,8 +13,6 @@ import org.springframework.web.bind.annotation.RestController
 class ConsultarExtratoBBController(
     private val extratoService: ExtratoService
 ) {
-
-
     @GetMapping("/{agencia}/{conta}")
     fun get(
         @PathVariable agencia: String,

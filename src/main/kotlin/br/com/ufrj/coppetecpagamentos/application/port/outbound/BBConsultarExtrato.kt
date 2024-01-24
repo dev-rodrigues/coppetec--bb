@@ -1,5 +1,6 @@
 package br.com.ufrj.coppetecpagamentos.application.port.outbound
 
+import br.com.ufrj.coppetecpagamentos.domain.service.ExtratoService
 import br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.BBContasAtivasRepository
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
@@ -7,13 +8,21 @@ import java.time.LocalDateTime
 
 @Component
 class BBConsultarExtrato(
-    private val bBContasAtivasRepository: BBContasAtivasRepository
+    private val bBContasAtivasRepository: BBContasAtivasRepository,
+    private val extratoService: ExtratoService,
 ) {
-    @Scheduled(cron = "0 0 8 * * ?")
+    @Scheduled(
+        fixedDelay = BBEnviarLoteJob.MINUTO,
+        zone = BBEnviarLoteJob.TIME_ZONE
+    )
     fun execute() {
-        val agora = LocalDateTime.now()
         val contas = bBContasAtivasRepository.getContas()
-        println(agora)
-        println(contas)
+
+        contas.forEach {
+            val result = extratoService.getExtrato(
+                agencia = it.agenciaSemDv!!,
+                conta = it.contaCorrenteSemDv!!
+            )
+        }
     }
 }
