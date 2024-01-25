@@ -185,11 +185,10 @@ class RestTemplateProxy(
 
     @Throws(java.lang.RuntimeException::class)
     private fun logErrorAndThrowException(e: java.lang.Exception) {
-        logger.error("PROXY --> Número máximo de tentativas de reexecução atingido. Erro: {}", getErrorMessage(e))
-        logger.info("PROXY --> Número máximo de tentativas de reexecução atingido. Erro: {}", getErrorMessage(e))
+        logger.error("PROXY -->  Erro: {}", getErrorMessage(e))
 
-        throw java.lang.RuntimeException(
-            "PROXY --> Número máximo de tentativas de reexecução atingido. Erro: " + getErrorMessage(
+        throw RuntimeException(
+            "PROXY --> Erro: " + getErrorMessage(
                 e
             ), e
         )
