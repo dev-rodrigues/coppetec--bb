@@ -15,7 +15,9 @@ class TransferenciasDoLoteController(
     private val transferenciaRepository: TransferenciaRepository
 ) {
     @GetMapping("/lote/{loteId}")
-    fun getByLoteId(@PathVariable loteId: BigInteger): ResponseEntity<List<TransferenciaEnviadaEntity>> {
+    fun getByLoteId(
+        @PathVariable loteId: BigInteger
+    ): ResponseEntity<List<TransferenciaEnviadaEntity>> {
         val response = transferenciaRepository.findAllByLoteId(loteId)
         return ResponseEntity.ok(response)
     }
