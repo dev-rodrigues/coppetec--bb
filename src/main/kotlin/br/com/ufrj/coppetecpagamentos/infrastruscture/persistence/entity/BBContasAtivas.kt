@@ -1,7 +1,6 @@
 package br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.entity
 
 import java.sql.Timestamp
-import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 data class BBContasAtivas(
@@ -15,6 +14,8 @@ data class BBContasAtivas(
 ) {
     companion object {
         fun map(result: List<Array<Any>>): List<BBContasAtivas> {
+            val formatter = DateTimeFormatter.ofPattern("ddMMyyyy")
+
             return if (result.isEmpty()) {
                 emptyList()
             } else result.stream().map { it: Array<Any> ->
@@ -25,9 +26,9 @@ data class BBContasAtivas(
                     contaCorrente = (it[3] as String?),
                     contaCorrenteSemDv = (it[4] as String?),
                     consultaPeriodoDe = ((it[5] as Timestamp?)?.toLocalDateTime()
-                        ?.format(DateTimeFormatter.ISO_DATE_TIME)!!),
+                        ?.format(formatter)!!),
                     consultaPeriodoAte = ((it[6] as Timestamp?)?.toLocalDateTime()
-                        ?.format(DateTimeFormatter.ISO_DATE_TIME)!!),
+                        ?.format(formatter)!!),
                 )
             }.toList()
         }

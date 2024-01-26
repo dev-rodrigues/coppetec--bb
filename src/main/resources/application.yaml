@@ -41,3 +41,8 @@ management:
       cors:
         allowed-origins: "*"
     enabled-by-default: false
+
+
+logging:
+  file:
+    name: logs/coppetec-bb.log

@@ -42,17 +42,11 @@ class ConciliacaoBancariaMovimentoEntity(
     @Column(name = "agenciaDV")
     var agenciaDV: String? = null,
 
-    @Column(name = "agenciaFull")
-    var agenciaFull: String? = null,
-
     @Column(name = "contaCorrente")
     var contaCorrente: String? = null,
 
     @Column(name = "contaCorrenteDV")
     var contaCorrenteDV: String? = null,
-
-    @Column(name = "contaCorrente_")
-    var contaCorrente_: String? = null,
 
     @Column(name = "contaCorrenteSIC")
     var contaCorrenteSIC: String? = null,

@@ -21,7 +21,9 @@ class ConsultarExtratoBBController(
 
         val response = extratoService.getExtrato(
             agencia = agencia,
-            conta = conta
+            conta = conta,
+            dataInicioSolicitacao = "",
+            dataFimSolicitacao = ""
         )
 
         return ResponseEntity.ok(response)

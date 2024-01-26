@@ -1,9 +1,11 @@
 package br.com.ufrj.coppetecpagamentos.domain.common
 
+import br.com.ufrj.coppetecpagamentos.domain.util.DateUtil
 import io.mockk.junit5.MockKExtension
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import java.math.BigInteger
+import java.time.LocalDateTime
 import java.time.Month
 
 @ExtendWith(MockKExtension::class)
@@ -37,5 +39,12 @@ class UtilsKtTest {
         assert(result.year == 2024)
         assert(result.month == Month.DECEMBER)
         assert(result.dayOfMonth == 10)
+    }
+
+    @Test
+    fun `qweqweq qwe`() {
+        val data = "12012024"
+        val response = formatarData(data.toBigInteger())
+        println(response)
     }
 }

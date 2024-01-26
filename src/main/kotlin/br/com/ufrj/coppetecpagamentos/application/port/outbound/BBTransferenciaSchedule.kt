@@ -1,6 +1,8 @@
 package br.com.ufrj.coppetecpagamentos.application.port.outbound
 
+import br.com.ufrj.coppetecpagamentos.domain.service.ConsultarLoteService
 import br.com.ufrj.coppetecpagamentos.domain.service.EnviarLoteService
+import br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.BBLoteRepository
 import br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.port.EnvioPendentePort
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -8,12 +10,14 @@ import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 
 @Component
-class BBEnviarLoteJob(
+class BBTransferenciaSchedule(
     private val envioPendentePort: EnvioPendentePort,
     private val enviarLoteService: EnviarLoteService,
+    private val consultarLoteService: ConsultarLoteService,
+    private val bBLoteRepository: BBLoteRepository
 ) {
 
-    private val logger: Logger = LoggerFactory.getLogger(BBEnviarLoteJob::class.java)
+    private val logger: Logger = LoggerFactory.getLogger(this::class.java)
 
     companion object {
         private const val SEGUNDO: Long = 1000
@@ -21,10 +25,10 @@ class BBEnviarLoteJob(
         const val TIME_ZONE = "America/Sao_Paulo"
     }
 
-//    @Scheduled(
-//        fixedDelay = MINUTO,
-//        zone = TIME_ZONE
-//    )
+    @Scheduled(
+        fixedDelay = MINUTO,
+        zone = TIME_ZONE
+    )
     fun step1() {
         val remessas = envioPendentePort.getEnvioPendenteDatabase()
 
@@ -48,6 +52,21 @@ class BBEnviarLoteJob(
             }
 
             enviarLoteService.executar(it, transferencias)
+        }
+    }
+
+    @Scheduled(
+        fixedDelay = MINUTO,
+        zone = TIME_ZONE
+    )
+    fun step2() {
+        logger.info("STEP 2: CONSULTAR LOTE ENVIADO")
+
+        val lotes = bBLoteRepository.findAllByCustomQuery()
+
+
+        lotes.forEach {
+            consultarLoteService.executar(it)
         }
     }
 }

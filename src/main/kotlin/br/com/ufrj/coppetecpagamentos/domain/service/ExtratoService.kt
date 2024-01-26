@@ -1,6 +1,8 @@
 package br.com.ufrj.coppetecpagamentos.domain.service
 
+import br.com.ufrj.coppetecpagamentos.domain.common.formatarData
 import br.com.ufrj.coppetecpagamentos.domain.model.API
+import br.com.ufrj.coppetecpagamentos.domain.util.ContaUtil
 import br.com.ufrj.coppetecpagamentos.domain.util.DateUtil
 import br.com.ufrj.coppetecpagamentos.domain.util.DateUtil.formatter
 import br.com.ufrj.coppetecpagamentos.infrastruscture.http.dto.response.BBConsultaExtratoResponseDto
@@ -10,19 +12,33 @@ import br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.ConciliacaoBan
 import br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.entity.BBContasAtivas
 import br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.entity.ConciliacaoBancariaImportacaoEntity
 import br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.entity.ConciliacaoBancariaMovimentoEntity
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
+import org.springframework.transaction.PlatformTransactionManager
+import org.springframework.transaction.TransactionStatus
+import org.springframework.transaction.support.TransactionCallbackWithoutResult
+import org.springframework.transaction.support.TransactionTemplate
 import java.math.BigInteger
+import java.math.BigInteger.ZERO
 import java.time.LocalDateTime
+import javax.transaction.Transactional
 
 @Service
 class ExtratoService(
     private val bbPort: BBPort,
     private val conciliacaoRepository: ConciliacaoBancariaImportacaoEntityRepository,
-    private val movimentoEntityRepository: ConciliacaoBancariaMovimentoEntityRepository
+    private val movimentoEntityRepository: ConciliacaoBancariaMovimentoEntityRepository,
+    private val transactionManager: PlatformTransactionManager
 ) {
+
+    private val logger: Logger = LoggerFactory.getLogger(this::class.java)
+
     fun getExtrato(
         agencia: String,
         conta: String,
+        dataInicioSolicitacao: String,
+        dataFimSolicitacao: String,
     ): BBConsultaExtratoResponseDto? {
         val token = bbPort.autenticar(API.EXTRATO).body?.accessToken!!
 
@@ -34,7 +50,9 @@ class ExtratoService(
                 agencia = agencia,
                 conta = conta,
                 token = token,
-                numeroPaginaSolicitacao = nextPage
+                numeroPaginaSolicitacao = nextPage,
+                dataInicioSolicitacao = dataInicioSolicitacao,
+                dataFimSolicitacao = dataFimSolicitacao,
             )
 
             if (extrato != null) {
@@ -54,40 +72,89 @@ class ExtratoService(
         return extrato
     }
 
+    @Transactional
     fun register(consulta: BBContasAtivas, response: BBConsultaExtratoResponseDto) {
-        val importacao =
-            conciliacaoRepository.save(
-                ConciliacaoBancariaImportacaoEntity(
-                    id = null,
-                    idLayOut = BigInteger.TWO,
-                    idDocumento = null,
-                    bancoOrigem = "001",
-                    arquivoNome = "IMPORTED WITH API",
-                    arquivoGeracaoDataHora = LocalDateTime.now(),
-                    arquivoNumeroSequencial = BigInteger.ONE,
-                    arquivoNumeroVersaoLayOut = "NaN",
-                    qtdLotes = 1,
-                    qtdRegistros = response.listaLancamento.size,
-                    qtdContas = 1,
-                    dataHora = LocalDateTime.now(),
-                    idUsuario = BigInteger.ONE,
-                    consultaAgencia = consulta.agenciaSemDv?.replace(".", ""),
-                    consultaContaCorrente = consulta.contaCorrente,
-                    consultaPeriodoDe = LocalDateTime.parse(consulta.consultaPeriodoDe!!, formatter),
-                    consultaPeriodoAte = LocalDateTime.parse(consulta.consultaPeriodoAte!!, formatter)
-                )
-            )
+        val transactionTemplate = TransactionTemplate(transactionManager)
 
 
-        movimentoEntityRepository.saveAll(
-            response.listaLancamento.map {
-                ConciliacaoBancariaMovimentoEntity(
-                    id = null,
-                    idImportacao = importacao.id,
+        transactionTemplate.execute(object : TransactionCallbackWithoutResult() {
+            override fun doInTransactionWithoutResult(status: TransactionStatus) {
 
-                )
+                try {
+                    val importacao = conciliacaoRepository.save(
+                        ConciliacaoBancariaImportacaoEntity(
+                            id = null,
+                            idLayOut = BigInteger.TWO,
+                            idDocumento = null,
+                            bancoOrigem = "001",
+                            arquivoNome = "IMPORTED WITH API",
+                            arquivoGeracaoDataHora = LocalDateTime.now(),
+                            arquivoNumeroSequencial = BigInteger.ONE,
+                            arquivoNumeroVersaoLayOut = "NaN",
+                            qtdLotes = 1,
+                            qtdRegistros = response.listaLancamento.size,
+                            qtdContas = 1,
+                            dataHora = LocalDateTime.now(),
+                            idUsuario = BigInteger.ONE,
+                            consultaAgencia = consulta.agenciaSemDv?.replace(".", ""),
+                            consultaContaCorrente = consulta.contaCorrente,
+                            consultaPeriodoDe = formatarData(consulta.consultaPeriodoDe!!.toBigInteger()), // LocalDateTime.parse(consulta.consultaPeriodoDe!!, formatter),
+                            consultaPeriodoAte = formatarData(consulta.consultaPeriodoAte!!.toBigInteger())//LocalDateTime.parse(consulta.consultaPeriodoAte!!, formatter)
+                        )
+                    )
+
+                    val movimento = response.listaLancamento.map { lancamento ->
+                        ConciliacaoBancariaMovimentoEntity(
+                            id = null,
+                            idImportacao = importacao.id,
+                            numeroSequencialExtrato = ZERO,
+                            numeroSequencialNoArquivo = ZERO,
+                            numeroSequencialNoLote = lancamento.numeroLote,
+                            banco = "001",
+                            agencia = consulta.agenciaSemDv,
+                            agenciaDV = ContaUtil.getDV(consulta.agencia!!),
+                            contaCorrente = ContaUtil.getCC(consulta.contaCorrenteSemDv!!),
+                            contaCorrenteDV = ContaUtil.getDV(consulta.contaCorrente!!),
+                            contaCorrenteSIC = consulta.contaCorrente,
+                            contaCorrenteDescricao = null,
+                            movimentoData = DateUtil.formatDate(lancamento.dataLancamento),
+                            movimentoDataContabil = DateUtil.formatDate(lancamento.dataMovimento),
+                            movimentoTipo = lancamento.indicadorSinalLancamento,
+                            movimentoValor = lancamento.valorLancamento,
+                            movimentoSaldo = null,
+                            posicaoSaldo = null,
+                            natureza = null,
+                            complementoTipo = null,
+                            complementoBancoOrigem = lancamento.codigoBancoContrapartida.toString(),
+                            complementoAgenciaOrigem = lancamento.codigoAgenciaContrapartida.toString(),
+                            complementoContaCorrenteOrigem = lancamento.numeroContaContrapartida,
+                            complementoContaCorrenteDVOrigem = lancamento.textoDvContaContrapartida,
+                            complementoAlfa = lancamento.numeroContaContrapartida,
+                            isencaoCPMF = null,
+                            movimentoCategoria = null,
+                            codigoHistorico = lancamento.codigoHistorico.toString(),
+                            descricaoHistorico = lancamento.textoDescricaoHistorico,
+                            documentoNumero = lancamento.numeroDocumento.toString(),
+                            somatorioValoresADebito = null,
+                            somatorioValoresACredito = null,
+                            numeroLancamentos = 1,
+                            numeroCpfCnpjContrapartida = lancamento.numeroCpfCnpjContrapartida.toString(),
+                            indicadorTipoPessoaContrapartida = lancamento.indicadorTipoPessoaContrapartida,
+                        )
+                    }
+
+                    println(
+                        movimento
+                    )
+
+                    movimentoEntityRepository.saveAll(
+                        movimento
+                    )
+
+                } catch (e: Exception) {
+                    logger.error("ERRO AO SALVAR EXTRATO: ${e.message}")
+                }
             }
-        )
-
+        })
     }
 }

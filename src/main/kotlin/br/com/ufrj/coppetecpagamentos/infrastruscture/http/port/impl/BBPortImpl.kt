@@ -98,7 +98,12 @@ class BBPortImpl(
     }
 
     override fun consultarExtrato(
-        numeroPaginaSolicitacao: Int?, agencia: String, conta: String, token: String
+        numeroPaginaSolicitacao: Int?,
+        agencia: String,
+        conta: String,
+        token: String,
+        dataInicioSolicitacao: String,
+        dataFimSolicitacao: String
     ): ResponseEntity<BBConsultaExtratoResponseDto> {
         return proxy.execute(
             {
@@ -107,7 +112,9 @@ class BBPortImpl(
                         CONSULTAR_EXTRATO, listOf(), mapOf(
                             "agencia" to agencia,
                             "conta" to conta,
-                            "numeroPaginaSolicitacao" to numeroPaginaSolicitacao.toString()
+                            "dataInicioSolicitacao" to dataInicioSolicitacao,
+                            "dataFimSolicitacao" to dataFimSolicitacao,
+                            "numeroPaginaSolicitacao" to numeroPaginaSolicitacao.toString(),
                         ), API.EXTRATO
                     ),
                     GET,
@@ -192,6 +199,8 @@ class BBPortImpl(
                 val agencia = maps["agencia"]
                 val conta = maps["conta"]
                 val numeroPaginaSolicitacao = maps["numeroPaginaSolicitacao"]
+                val dataInicioSolicitacao = maps["dataInicioSolicitacao"]
+                val dataFimSolicitacao = maps["dataFimSolicitacao"]
 
                 val uriAux = UriComponentsBuilder.fromHttpUrl(endpoint)
                     .path("/extratos/v1/conta-corrente/agencia/{agencia}/conta/{conta}")
@@ -199,7 +208,11 @@ class BBPortImpl(
 
                 val url = buildUri(
                     endpoint = uriAux, parameters = if (numeroPaginaSolicitacao != null) {
-                        mapOf(Pair("numeroPaginaSolicitacao", numeroPaginaSolicitacao))
+                        mapOf(
+                            Pair("numeroPaginaSolicitacao", numeroPaginaSolicitacao),
+                            Pair("dataInicioSolicitacao", dataInicioSolicitacao!!),
+                            Pair("dataFimSolicitacao", dataFimSolicitacao!!)
+                        )
                     } else emptyMap(), api = api
                 )
                 logger.info("URL DE CONSULTA DO EXTRATO: {}", url)

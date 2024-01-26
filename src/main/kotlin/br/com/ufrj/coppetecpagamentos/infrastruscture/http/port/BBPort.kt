@@ -21,5 +21,7 @@ interface BBPort {
         agencia: String,
         conta: String,
         token: String,
+        dataInicioSolicitacao: String,
+        dataFimSolicitacao: String,
     ): ResponseEntity<BBConsultaExtratoResponseDto>
 }
