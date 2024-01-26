@@ -64,7 +64,6 @@ class BBTransferenciaSchedule(
 
         val lotes = bBLoteRepository.findAllByCustomQuery()
 
-
         lotes.forEach {
             consultarLoteService.executar(it)
         }

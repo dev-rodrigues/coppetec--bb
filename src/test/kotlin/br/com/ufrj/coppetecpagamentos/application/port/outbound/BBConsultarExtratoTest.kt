@@ -35,9 +35,13 @@ class BBConsultarExtratoTest {
             getBBContasAtivas()
         )
 
-//        every {
-//            extratoService.getExtrato(any(), any(), conta.consultaPeriodoDe, conta.consultaPeriodoAte)
-//        } returns getBBConsultaExtratoResponseDto()
+        justRun {
+            meterRegistry.counter(any(), any(), any()).increment()
+        }
+
+        every {
+            extratoService.getExtrato(any(), any(), any(), any())
+        } returns getBBConsultaExtratoResponseDto()
 
         justRun {
             extratoService.register(any(), any())
@@ -58,9 +62,13 @@ class BBConsultarExtratoTest {
             getBBContasAtivas()
         )
 
-//        every {
-//            extratoService.getExtrato(any(), any(), conta.consultaPeriodoDe, conta.consultaPeriodoAte)
-//        } returns null
+        justRun {
+            meterRegistry.counter(any(), any(), any()).increment()
+        }
+
+        every {
+            extratoService.getExtrato(any(), any(), any(), any())
+        } returns null
 
         service.execute()
 

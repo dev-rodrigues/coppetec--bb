@@ -23,7 +23,7 @@ class BBConsultarExtrato(
 
         log.info("CONSULTANDO EXTRATO DE ${contas.size} CONTAS")
 
-        if (contas.isEmpty()) {
+        if (contas.isNotEmpty()) {
             contas.forEachIndexed { index, conta ->
                 log.info("CONSULTANDO EXTRATO DA CONTA ${index + 1} DE ${contas.size}")
 
