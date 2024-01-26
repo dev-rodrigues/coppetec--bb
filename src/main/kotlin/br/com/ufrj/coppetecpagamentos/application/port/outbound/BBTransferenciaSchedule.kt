@@ -38,7 +38,10 @@ class BBTransferenciaSchedule(
 
             logger.info("REMESSA CONTA FONTE:{} - TIPO DE PAGAMENTO: {}", it.contaOrigem, it.tipoPagamento)
 
-            val transferencias = envioPendentePort.getTransferenciasPendente(it.contaOrigem!!, it.tipoPagamento!!)
+            val transferencias = envioPendentePort.getTransferenciasPendente(
+                contaFonte = it.contaOrigem!!,
+                tipoPagamento = it.tipoPagamento!!
+            )
 
             transferencias.forEach { t ->
                 logger.info(

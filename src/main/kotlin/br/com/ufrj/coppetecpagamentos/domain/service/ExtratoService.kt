@@ -34,6 +34,8 @@ class ExtratoService(
 
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
 
+
+
     fun getExtrato(
         agencia: String,
         conta: String,
