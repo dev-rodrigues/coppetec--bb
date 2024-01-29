@@ -31,11 +31,11 @@ fun getBBContasAtivas(
     consultaPeriodoDe: String = "2021-01-01T00:00:00",
     consultaPeriodoAte: String = "2021-01-01T00:00:00",
 ) = BBContasAtivas(
-    banco = "001",
-    agencia = "0001",
-    agenciaSemDv = "0001",
-    contaCorrente = "0000000001",
-    contaCorrenteSemDv = "0000000001",
-    consultaPeriodoDe = "2021-01-01T00:00:00",
-    consultaPeriodoAte = "2021-01-01T00:00:00",
+    banco = banco,
+    agencia = agencia,
+    agenciaSemDv = agenciaSemDv,
+    contaCorrente = contaCorrente,
+    contaCorrenteSemDv = contaCorrenteSemDv,
+    consultaPeriodoDe = consultaPeriodoDe,
+    consultaPeriodoAte = consultaPeriodoAte,
 )

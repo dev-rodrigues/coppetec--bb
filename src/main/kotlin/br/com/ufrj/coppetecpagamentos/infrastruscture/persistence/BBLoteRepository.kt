@@ -13,4 +13,5 @@ interface BBLoteRepository : JpaRepository<BBLoteEntity, BigInteger> {
                 "OR l.estadoRequisicao IN (1, 2, 4, 5, 8, 9, 10)"
     )
     fun findAllByCustomQuery(): List<BBLoteEntity>
+
 }

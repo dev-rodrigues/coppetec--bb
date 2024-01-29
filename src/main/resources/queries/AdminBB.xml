@@ -4,7 +4,8 @@
 <properties>
     <entry key="[COPPETEC].[bancoDoBrasil_remessa].[consultaLoteEnviado]">
         <![CDATA[
-            SELECT 		l.id
+            SELECT
+                        l.id
                     ,	l.dataHora
                     ,	l.estadoRequisicao
                     ,	er.descricao
@@ -17,6 +18,40 @@
                     ON 	l.estadoRequisicao = er.id
 
             ORDER BY	l.id desc
+        ]]>
+    </entry>
+
+    <entry key="[COPPETEC].[bancoDoBrasil_remessa].[consultaLoteEnviadoPaginated]">
+        <![CDATA[
+            SELECT
+                l.id,
+                l.dataHora,
+                l.estadoRequisicao,
+                er.descricao,
+                l.quantidadeTransferencias,
+                l.valorTransferencias,
+                l.quantidadeTransferenciasValidas,
+                l.valorTransferenciasValidas
+            FROM
+                COPPETEC.bancoDoBrasil_remessa.lote l
+            JOIN
+                COPPETEC.bancoDoBrasil_remessa.estadoRequisicao er ON l.estadoRequisicao = er.id
+            ORDER BY
+                l.id desc
+            OFFSET
+                :offset ROWS FETCH NEXT :pageSize ROWS ONLY
+        ]]>
+    </entry>
+
+    <entry key="[COPPETEC].[bancoDoBrasil_remessa].[consultaLoteEnviadoPaginated.[props]">
+        <![CDATA[
+            SELECT
+                COUNT(*) AS totalElements,
+                CEILING(COUNT(*) * 1.0 / :pageSize) AS totalPages,
+                :pageNumber as pageNumber,
+                :pageSize as pageSize
+            FROM
+                COPPETEC.bancoDoBrasil_remessa.lote l
         ]]>
     </entry>
 
