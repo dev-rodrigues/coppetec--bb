@@ -45,5 +45,5 @@ management:
 
 logging:
   file:
-    path: /tmp/logs
+    path: ${LOGGING_FILE_PATH:/tmp/logs}
     name: bb.log
