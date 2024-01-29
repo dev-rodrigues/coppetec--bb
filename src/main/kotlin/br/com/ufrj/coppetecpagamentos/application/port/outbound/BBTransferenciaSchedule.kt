@@ -59,7 +59,7 @@ class BBTransferenciaSchedule(
     }
 
     @Scheduled(
-        fixedDelay = MINUTO,
+        fixedDelay = MINUTO * 5,
         zone = TIME_ZONE
     )
     fun step2() {
