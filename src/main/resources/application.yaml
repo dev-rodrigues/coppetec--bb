@@ -45,4 +45,5 @@ management:
 
 logging:
   file:
-    name: logs/coppetec-bb.log
+    path: /tmp/logs
+    name: bb.log
