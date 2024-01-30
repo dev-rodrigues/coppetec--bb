@@ -77,7 +77,6 @@ class RestTemplateProxy(
 
                     retryCount++
                 } else {
-
                     when {
                         isBadRequest(e) -> {
                             Counter.builder("http_${httpUri.name}_request_error_total")
@@ -202,17 +201,6 @@ class RestTemplateProxy(
 
     private fun getErrorMessage(e: java.lang.Exception): String {
         return if (e is HttpClientErrorException) e.responseBodyAsString else e.message!!
-    }
-
-    @Throws(java.lang.RuntimeException::class)
-    private fun logErrorAndThrowException(e: java.lang.Exception) {
-        logger.error("PROXY -->  Erro: {}", getErrorMessage(e))
-
-        throw RuntimeException(
-            "PROXY --> Erro: " + getErrorMessage(
-                e
-            ), e
-        )
     }
 
     private fun sleepInSeconds(seconds: Int) {

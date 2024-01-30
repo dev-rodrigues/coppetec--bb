@@ -1,35 +1,27 @@
 package br.com.ufrj.coppetecpagamentos.application.port.outbound
 
-import br.com.ufrj.coppetecpagamentos.domain.service.ConsultarLoteService
 import br.com.ufrj.coppetecpagamentos.domain.service.EnviarLoteService
-import br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.BBLoteRepository
 import br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.entity.TransferenciaPendenteDatabase
 import br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.port.EnvioPendentePort
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.scheduling.annotation.Async
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 
 @Component
-class BBTransferenciaSchedule(
+class BBTransferenciaStp1Schedule(
     private val envioPendentePort: EnvioPendentePort,
     private val enviarLoteService: EnviarLoteService,
-    private val consultarLoteService: ConsultarLoteService,
-    private val bBLoteRepository: BBLoteRepository
 ) {
 
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
     private val parts: Int = 300
 
-    companion object {
-        private const val SEGUNDO: Long = 1000
-        const val MINUTO: Long = SEGUNDO * 60
-        const val TIME_ZONE = "America/Sao_Paulo"
-    }
-
+    @Async
     @Scheduled(
-        fixedDelay = MINUTO,
-        zone = TIME_ZONE
+        fixedDelay = 60 * 1000,
+        zone = BBTransferenciaStp2Schedule.TIME_ZONE
     )
     fun step1() {
         val remessas = envioPendentePort.getEnvioPendenteDatabase()
@@ -37,8 +29,6 @@ class BBTransferenciaSchedule(
         logger.info("STEP 1: TOTAL DE TRANSFERÊNCIAS PENDENTES DE ENVIO {} ", remessas.size)
 
         remessas.forEach {
-
-            logger.info("REMESSA CONTA FONTE:{} - TIPO DE PAGAMENTO: {}", it.contaOrigem, it.tipoPagamento)
 
             val transferencias = envioPendentePort.getTransferenciasPendente(
                 contaFonte = it.contaOrigem!!,
@@ -53,29 +43,9 @@ class BBTransferenciaSchedule(
                 parts.size
             )
 
-            logger.info(
-                "NUMERO DE TRANSFERENCIAS: {} - GERADO {} PARTES DE TRANSFERENCIA",
-                transferencias.size,
-                parts.size
-            )
-
             parts.forEach { part ->
                 enviarLoteService.executar(it, part)
             }
-        }
-    }
-
-    @Scheduled(
-        fixedDelay = MINUTO,
-        zone = TIME_ZONE
-    )
-    fun step2() {
-        logger.info("STEP 2: CONSULTAR LOTE ENVIADO")
-
-        val lotes = bBLoteRepository.findAllByCustomQuery()
-
-        lotes.forEach {
-            consultarLoteService.executar(it)
         }
     }
 }

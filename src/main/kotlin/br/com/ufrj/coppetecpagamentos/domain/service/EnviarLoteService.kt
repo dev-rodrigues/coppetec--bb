@@ -36,8 +36,6 @@ class EnviarLoteService(
 
         val loteDeEnvio = BBTransferirRequest.mapLoteRequest(loteEnvioPendenteDatabase, lote)
 
-        logger.info("STEP 1: CABEÇALHO DO LOTE {}", loteDeEnvio)
-
         val dbTransferencias: MutableList<BBTransferenciaEntity> = mutableListOf()
 
         transferencias.forEach {
@@ -66,8 +64,6 @@ class EnviarLoteService(
         if (nonNull(response)) {
             val body = response!!.body!!
 
-            logger.info("STEP 1: RESPOSTA DO BANCO DO BRASIL {}", body)
-
             bBLoteRepository.save(lote.atualizarBBLoteEntityComResposta(body))
 
             body.transferencias.forEach { transferenciaBB ->
@@ -95,7 +91,6 @@ class EnviarLoteService(
             }
         } else {
             logger.error("STEP 1: TIVEMOS UM ERRO AO ENVIAR O LOTE ${lote.id!!}")
-            logger.error("STEP 1: CONSULTE A TABELA DE ERROS PARA MAIS DETALHES")
         }
     }
 }

@@ -1,8 +1,6 @@
 package br.com.ufrj.coppetecpagamentos.application.port.outbound
 
-import br.com.ufrj.coppetecpagamentos.domain.service.ConsultarLoteService
 import br.com.ufrj.coppetecpagamentos.domain.service.EnviarLoteService
-import br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.BBLoteRepository
 import br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.entity.LoteEnvioPendenteDatabase
 import br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.entity.TransferenciaPendenteDatabase
 import br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.port.EnvioPendentePort
@@ -11,7 +9,6 @@ import io.mockk.junit5.MockKExtension
 import io.mockk.justRun
 import io.mockk.mockk
 import io.mockk.verify
-import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import java.math.BigDecimal
@@ -23,14 +20,10 @@ class BBTransferenciaScheduleTest {
 
     private val envioPendentePort: EnvioPendentePort = mockk()
     private val enviarLoteService: EnviarLoteService = mockk()
-    private val consultarLoteService: ConsultarLoteService = mockk()
-    private val bBLoteRepository: BBLoteRepository = mockk()
 
-    private val schedule = BBTransferenciaSchedule(
+    private val schedule = BBTransferenciaStp1Schedule(
         envioPendentePort = envioPendentePort,
-        enviarLoteService = enviarLoteService,
-        consultarLoteService = consultarLoteService,
-        bBLoteRepository = bBLoteRepository
+        enviarLoteService = enviarLoteService
     )
 
 

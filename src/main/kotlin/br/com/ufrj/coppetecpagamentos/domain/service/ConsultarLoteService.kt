@@ -26,9 +26,9 @@ class ConsultarLoteService(
 
     private val logger: Logger = LoggerFactory.getLogger(ConsultarLoteService::class.java)
 
-    fun executar(lote: BBLoteEntity) {
+    fun executar(lote: BBLoteEntity, step: Int) {
 
-        logger.info("STEP 2: CONSULTANDO LOTE {}", lote.id!!)
+        logger.info("STEP ${step}: CONSULTANDO LOTE {}", lote.id!!)
 
         val token = bbPort.autenticar(api = API.TRANSFERENCIA).body!!.accessToken
 
@@ -42,14 +42,14 @@ class ConsultarLoteService(
                 lote.atualizarBBLoteEntityComConsulta(loteConsultado)
             )
 
-            logger.info("STEP 2: LOTE ATUALIZADO COM CONSULTA {}", loteAtualizado.toString())
+            logger.info("STEP ${step}: LOTE ATUALIZADO COM CONSULTA {}", loteAtualizado.toString())
 
             val transferenciasDoLote = bbTransferenciasRepository.findAllByLote(loteAtualizado.id!!)
 
             transferenciasDoLote.forEach {
 
                 if (it.identificadorTransferencia != null) {
-                    logger.info("STEP 2: CONSULTANDO TRANSFERENCIA ${it.id!!} DO LOTE ${loteAtualizado.id!!}")
+                    logger.info("STEP ${step}: CONSULTANDO TRANSFERENCIA ${it.id!!} DO LOTE ${loteAtualizado.id!!}")
 
                     val tokenTransferencia = bbPort.autenticar().body!!.accessToken
 
@@ -59,7 +59,9 @@ class ConsultarLoteService(
                     )
 
                     if (bbTransferencia != null) {
-                        logger.info("STEP 2: TRANSFERENCIA ${it.id!!} DO LOTE ${loteAtualizado.id!!} CONSULTADA COM SUCESSO")
+                        logger.info(
+                            "STEP ${step}: TRANSFERENCIA ${it.id!!} DO LOTE ${loteAtualizado.id!!} CONSULTADA COM SUCESSO"
+                        )
 
                         val estadoPagamento = bBEstadoTransferenciaEntityRepository
                             .findByEstadoPagamentoIgnoreCase(bbTransferencia.estadoPagamento!!)
@@ -68,7 +70,9 @@ class ConsultarLoteService(
                             bbTransferencia = bbTransferencia,
                             estadoPagamento = estadoPagamento
                         )
-                        logger.info("STEP 2: TRANSFERENCIA ${it.id!!} DO LOTE ${loteAtualizado.id!!} ATUALIZADA COM SUCESSO")
+                        logger.info(
+                            "STEP ${step}: TRANSFERENCIA ${it.id!!} DO LOTE ${loteAtualizado.id!!} ATUALIZADA COM SUCESSO"
+                        )
 
                         bbTransferenciasRepository.save(transferenciaDbAtualizada)
 
@@ -86,21 +90,29 @@ class ConsultarLoteService(
                             bBDevolucaoTransferenciaEntityRepository.findAllByTransferenciaId(it.id!!)
 
                         if (nonNull(devolucoesRegistradas) && devolucoesRegistradas.isEmpty()) {
-                            logger.info("STEP 2: SALVANDO DEVOLUCAO DA TRANSFERENCIA ${it.id!!} DO LOTE ${loteAtualizado.id!!}")
+                            logger.info(
+                                "STEP ${step}: SALVANDO DEVOLUCAO DA TRANSFERENCIA " +
+                                        "${it.id!!} DO LOTE ${loteAtualizado.id!!}"
+                            )
 
                             if (nonNull(dbTransferenciaDevolucao) || dbTransferenciaDevolucao!!.isNotEmpty()) {
                                 bBDevolucaoTransferenciaEntityRepository.saveAll(dbTransferenciaDevolucao!!)
                             }
                         }
                     } else {
-                        logger.info("STEP 2: TRANSFERENCIA ${it.id!!} DO LOTE ${loteAtualizado.id!!} NÃO ENCONTRADA")
+                        logger.error(
+                            "STEP ${step}: TRANSFERENCIA ${it.id!!} DO LOTE ${loteAtualizado.id!!} NÃO ENCONTRADA"
+                        )
                     }
                 } else {
-                    logger.info("STEP 2: TRANSFERENCIA ${it.id!!} DO LOTE ${loteAtualizado.id!!} NÃO POSSUI IDENTIFICADOR DE TRANSFERENCIA")
+                    logger.error(
+                        "STEP ${step}: TRANSFERENCIA ${it.id!!} " +
+                                "DO LOTE ${loteAtualizado.id!!} NÃO POSSUI IDENTIFICADOR DE TRANSFERENCIA"
+                    )
                 }
             }
         } else {
-            logger.info("STEP 2: LOTE ${lote.id!!} NÃO ENCONTRADO")
+            logger.error("STEP ${step}: LOTE ${lote.id!!} NÃO ENCONTRADO")
         }
     }
 }
