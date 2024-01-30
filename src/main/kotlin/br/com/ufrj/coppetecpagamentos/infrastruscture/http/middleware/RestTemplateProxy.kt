@@ -35,7 +35,7 @@ class RestTemplateProxy(
         .registerTypeAdapter(LocalDateTime::class.java, LocalDateTimeAdapter())
         .create()
 
-    fun <Y> execute(consumer: Supplier<Y>, httpUri: HttpUri): Y {
+    fun <Y> execute(consumer: Supplier<Y>, httpUri: HttpUri): Y? {
         var retryCount = 0
         while (true) {
             try {
@@ -77,12 +77,25 @@ class RestTemplateProxy(
 
                     retryCount++
                 } else {
-                    Counter.builder("http_${httpUri.name}_request_error_total")
-                        .tags("http_status", "500")
-                        .description("Total number of HTTP requests with errors")
-                        .register(meterRegistry)
 
-                    logErrorAndThrowException(e)
+                    when {
+                        isBadRequest(e) -> {
+                            Counter.builder("http_${httpUri.name}_request_error_total")
+                                .tags("http_status", "400")
+                                .description("Total number of HTTP requests with errors")
+                                .register(meterRegistry)
+                            return null
+                        }
+
+                        isServerError(e) -> {
+                            Counter.builder("http_${httpUri.name}_request_error_total")
+                                .tags("http_status", "500")
+                                .description("Total number of HTTP requests with errors")
+                                .register(meterRegistry)
+
+                            return null
+                        }
+                    }
                 }
             }
         }
@@ -168,6 +181,14 @@ class RestTemplateProxy(
 
     private fun isRetryableException(e: java.lang.Exception): Boolean {
         return e is UnknownHostException || e is ResourceAccessException || e is HttpServerErrorException // e is HttpClientErrorException ||
+    }
+
+    private fun isBadRequest(e: java.lang.Exception): Boolean {
+        return e is HttpClientErrorException && e.statusCode.is4xxClientError
+    }
+
+    private fun isServerError(e: java.lang.Exception): Boolean {
+        return e is HttpClientErrorException && e.statusCode.is5xxServerError
     }
 
     private fun logRetryWarning(e: java.lang.Exception, retryAttempt: Int, sleepInSeconds: Int) {

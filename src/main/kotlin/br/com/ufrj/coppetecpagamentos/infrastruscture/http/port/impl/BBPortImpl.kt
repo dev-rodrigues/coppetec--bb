@@ -26,9 +26,11 @@ import org.springframework.util.MultiValueMap
 import org.springframework.web.client.RestTemplate
 import org.springframework.web.util.UriComponentsBuilder
 import java.math.BigInteger
+import java.util.Objects
 import java.util.Objects.nonNull
 import java.util.regex.Pattern
 
+@Suppress("UNREACHABLE_CODE")
 @Component
 class BBPortImpl(
     private val bBProperties: BBProperties,
@@ -42,7 +44,7 @@ class BBPortImpl(
     override fun autenticar(
         api: API
     ): ResponseEntity<BBAutenticacaoResponseDto> {
-        return proxy.execute(
+        val response = proxy.execute(
             {
                 client.exchange(
                     getURI(AUTENTICAR, emptyList(), emptyMap(), api),
@@ -52,10 +54,17 @@ class BBPortImpl(
                 )
             }, AUTENTICAR
         )
+
+        return if (nonNull(response)) {
+            response!!
+        } else {
+            logger.error("Erro ao autenticar")
+            throw RuntimeException("Erro ao autenticar")
+        }
     }
 
     override fun liberarLote(body: BBLiberacaoLoteRequest, token: String): ResponseEntity<BBLiberacaoLoteResponse> {
-        return proxy.execute(
+        val response = proxy.execute(
             {
                 client.exchange(
                     getURI(ENVIAR_LOTE, emptyList(), emptyMap(), API.TRANSFERENCIA),
@@ -65,10 +74,17 @@ class BBPortImpl(
                 )
             }, LIBERAR_LOTE
         )
+
+        return if (nonNull(response)) {
+            response!!
+        } else {
+            logger.error("Erro ao liberar lote")
+            throw RuntimeException("Erro ao liberar lote")
+        }
     }
 
-    override fun consultarLote(idLote: BigInteger, accessToken: String): ResponseEntity<BBConsultaLoteResponseDto> {
-        return proxy.execute(
+    override fun consultarLote(idLote: BigInteger, accessToken: String): ResponseEntity<BBConsultaLoteResponseDto>? {
+        val response = proxy.execute(
             {
                 client.exchange(
                     getURI(CONSULTAR_LOTE, listOf(idLote), emptyMap(), API.TRANSFERENCIA),
@@ -78,11 +94,15 @@ class BBPortImpl(
                 )
             }, CONSULTAR_LOTE
         )
+
+        return if (nonNull(response)) {
+            response!!
+        } else null
     }
 
     override fun consultarTransferencia(
         identificadorTransferencia: BigInteger, accessToken: String
-    ): BBConsultaTransferenciaResponseDto {
+    ): BBConsultaTransferenciaResponseDto? {
         val response = proxy.execute(
             {
                 client.exchange(
@@ -94,7 +114,12 @@ class BBPortImpl(
             }, CONSULTAR_TRANSFERENCIA
         )
 
-        return formatBBConsultaTransferenciaResponseDto(response)
+        return if (nonNull(response)) {
+            return formatBBConsultaTransferenciaResponseDto(response!!)
+        } else {
+            logger.error("Erro ao consultar transferencia")
+            return null
+        }
     }
 
     override fun consultarExtrato(
@@ -105,7 +130,7 @@ class BBPortImpl(
         dataInicioSolicitacao: String,
         dataFimSolicitacao: String
     ): ResponseEntity<BBConsultaExtratoResponseDto> {
-        return proxy.execute(
+        val response = proxy.execute(
             {
                 client.exchange(
                     getURI(
@@ -123,6 +148,13 @@ class BBPortImpl(
                 )
             }, CONSULTAR_EXTRATO
         )
+
+        return if (nonNull(response)) {
+            response!!
+        } else {
+            logger.error("Erro ao consultar extrato")
+            throw RuntimeException("Erro ao consultar extrato")
+        }
     }
 
     override fun transferir(

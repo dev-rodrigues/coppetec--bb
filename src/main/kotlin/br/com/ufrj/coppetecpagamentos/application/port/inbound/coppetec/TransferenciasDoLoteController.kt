@@ -12,7 +12,7 @@ import java.math.BigInteger
 @RestController
 @RequestMapping("/api/transferencias")
 class TransferenciasDoLoteController(
-    private val transferenciaRepository: TransferenciaRepository
+    private val transferenciaRepository: TransferenciaRepository,
 ) {
     @GetMapping("/lote/{loteId}")
     fun getByLoteId(

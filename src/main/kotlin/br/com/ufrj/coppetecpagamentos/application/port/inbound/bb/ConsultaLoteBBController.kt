@@ -18,6 +18,6 @@ class ConsultaLoteBBController(
     fun get(@PathVariable idLote: BigInteger): ResponseEntity<BBConsultaLoteResponseDto> {
         val token = bbPort.autenticar()
         val response = bbPort.consultarLote(idLote, requireNotNull(token.body?.accessToken))
-        return ResponseEntity.ok(response.body)
+        return ResponseEntity.ok(response?.body)
     }
 }

@@ -3,6 +3,7 @@ package br.com.ufrj.coppetecpagamentos.application.port.outbound
 import br.com.ufrj.coppetecpagamentos.domain.service.ConsultarLoteService
 import br.com.ufrj.coppetecpagamentos.domain.service.EnviarLoteService
 import br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.BBLoteRepository
+import br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.entity.TransferenciaPendenteDatabase
 import br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.port.EnvioPendentePort
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -18,6 +19,7 @@ class BBTransferenciaSchedule(
 ) {
 
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
+    private val parts: Int = 300
 
     companion object {
         private const val SEGUNDO: Long = 1000
@@ -25,10 +27,10 @@ class BBTransferenciaSchedule(
         const val TIME_ZONE = "America/Sao_Paulo"
     }
 
-    @Scheduled(
-        fixedDelay = MINUTO,
-        zone = TIME_ZONE
-    )
+    //    @Scheduled(
+//        fixedDelay = MINUTO,
+//        zone = TIME_ZONE
+//    )
     fun step1() {
         val remessas = envioPendentePort.getEnvioPendenteDatabase()
 
@@ -43,23 +45,28 @@ class BBTransferenciaSchedule(
                 tipoPagamento = it.tipoPagamento!!
             )
 
-            transferencias.forEach { t ->
-                logger.info(
-                    "STEP 1: BANCO: {} - AG: {} - CONTA_DÉBITO: {} - CONTA_FONTE: {} - TIPO_PAGAMENTO: {}",
-                    t.banco,
-                    t.agenciaDebito,
-                    t.contaDebito,
-                    t.contaFonte,
-                    t.tipoPagamento
-                )
-            }
+            val parts: List<List<TransferenciaPendenteDatabase>> = transferencias.chunked(parts)
 
-            enviarLoteService.executar(it, transferencias)
+            logger.info(
+                "NUMERO DE TRANSFERENCIAS: {} - GERADO {} PARTES DE TRANSFERENCIA",
+                transferencias.size,
+                parts.size
+            )
+
+            logger.info(
+                "NUMERO DE TRANSFERENCIAS: {} - GERADO {} PARTES DE TRANSFERENCIA",
+                transferencias.size,
+                parts.size
+            )
+
+            parts.forEach { part ->
+                enviarLoteService.executar(it, part)
+            }
         }
     }
 
     @Scheduled(
-        fixedDelay = MINUTO * 5,
+        fixedDelay = MINUTO,
         zone = TIME_ZONE
     )
     fun step2() {

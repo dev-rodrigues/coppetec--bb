@@ -22,6 +22,7 @@ class BBLoteEntity {
     private var valorTransferencias: BigDecimal? = null
     private var quantidadeTransferenciasValidas: Int? = null
     private var valorTransferenciasValidas: BigDecimal? = null
+    private var canceladoEm: LocalDateTime? = null
 
     constructor() {
         // Default constructor

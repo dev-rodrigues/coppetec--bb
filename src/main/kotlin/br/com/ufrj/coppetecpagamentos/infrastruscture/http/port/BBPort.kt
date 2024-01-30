@@ -10,10 +10,10 @@ import java.math.BigInteger
 interface BBPort {
     fun autenticar(api: API = API.TRANSFERENCIA): ResponseEntity<BBAutenticacaoResponseDto>
     fun liberarLote(body: BBLiberacaoLoteRequest, token: String): ResponseEntity<BBLiberacaoLoteResponse>
-    fun consultarLote(idLote: BigInteger, accessToken: String): ResponseEntity<BBConsultaLoteResponseDto>
+    fun consultarLote(idLote: BigInteger, accessToken: String): ResponseEntity<BBConsultaLoteResponseDto>?
     fun consultarTransferencia(
         identificadorTransferencia: BigInteger, accessToken: String
-    ): BBConsultaTransferenciaResponseDto
+    ): BBConsultaTransferenciaResponseDto?
 
     fun transferir(loteDeEnvio: BBTransferirRequest, token: String): ResponseEntity<BBTransferenciaResponseDto>?
     fun consultarExtrato(
