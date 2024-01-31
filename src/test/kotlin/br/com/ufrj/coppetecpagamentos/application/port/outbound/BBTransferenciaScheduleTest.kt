@@ -4,6 +4,7 @@ import br.com.ufrj.coppetecpagamentos.domain.service.EnviarLoteService
 import br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.entity.LoteEnvioPendenteDatabase
 import br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.entity.TransferenciaPendenteDatabase
 import br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.port.EnvioPendentePort
+import br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.port.TogglePort
 import io.mockk.every
 import io.mockk.junit5.MockKExtension
 import io.mockk.justRun
@@ -20,15 +21,21 @@ class BBTransferenciaScheduleTest {
 
     private val envioPendentePort: EnvioPendentePort = mockk()
     private val enviarLoteService: EnviarLoteService = mockk()
+    private val togglePort: TogglePort = mockk()
 
     private val schedule = BBTransferenciaStp1Schedule(
         envioPendentePort = envioPendentePort,
-        enviarLoteService = enviarLoteService
+        enviarLoteService = enviarLoteService,
+        togglePort = togglePort,
     )
 
 
     @Test
     fun `should sent single part to enviarLoteService`() {
+        every {
+            togglePort.isEnabled(any())
+        } returns true
+
         every {
             envioPendentePort.getEnvioPendenteDatabase()
         } returns listOf(
@@ -92,6 +99,10 @@ class BBTransferenciaScheduleTest {
 
     @Test
     fun `should sent tree part to enviarLoteService`() {
+        every {
+            togglePort.isEnabled(any())
+        } returns true
+
         every {
             envioPendentePort.getEnvioPendenteDatabase()
         } returns listOf(
@@ -157,6 +168,10 @@ class BBTransferenciaScheduleTest {
     @Test
     fun `should sent four part to enviarLoteService`() {
         every {
+            togglePort.isEnabled(any())
+        } returns true
+
+        every {
             envioPendentePort.getEnvioPendenteDatabase()
         } returns listOf(
             LoteEnvioPendenteDatabase(
@@ -220,6 +235,10 @@ class BBTransferenciaScheduleTest {
 
     @Test
     fun `should sent five part to enviarLoteService`() {
+        every {
+            togglePort.isEnabled(any())
+        } returns true
+
         every {
             envioPendentePort.getEnvioPendenteDatabase()
         } returns listOf(
