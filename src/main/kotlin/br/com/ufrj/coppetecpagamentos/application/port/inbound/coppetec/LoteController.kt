@@ -29,7 +29,7 @@ class LoteController(
     @GetMapping("/paginated")
     fun getPaginatedLote(
         @RequestParam("pageNumber", defaultValue = "1") pageNumber: Int,
-        @RequestParam("pageSize", defaultValue = "13") pageSize: Int
+        @RequestParam("pageSize", defaultValue = "10") pageSize: Int
     ): ResponseEntity<LoteEnviadoEntityPaginated> {
         val response = loteRepository.findPaginated(pageNumber, pageSize)
         return ResponseEntity.ok(response)
