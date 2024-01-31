@@ -1,5 +1,6 @@
 server:
   port: 9991
+  shutdown: graceful
 spring:
   application:
     name: pagamentos

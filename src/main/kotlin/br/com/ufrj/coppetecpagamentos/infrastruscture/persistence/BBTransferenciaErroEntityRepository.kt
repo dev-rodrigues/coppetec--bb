@@ -4,5 +4,4 @@ import br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.entity.BBTrans
 import org.springframework.data.jpa.repository.JpaRepository
 import java.math.BigInteger
 
-interface BBTransferenciaErroEntityRepository : JpaRepository<BBTransferenciaErroEntity, BigInteger> {
-}
+interface BBTransferenciaErroEntityRepository : JpaRepository<BBTransferenciaErroEntity, BigInteger>
