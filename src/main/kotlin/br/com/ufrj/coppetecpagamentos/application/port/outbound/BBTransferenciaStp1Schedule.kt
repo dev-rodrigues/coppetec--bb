@@ -1,6 +1,7 @@
 package br.com.ufrj.coppetecpagamentos.application.port.outbound
 
 import br.com.ufrj.coppetecpagamentos.domain.model.Toggle
+import br.com.ufrj.coppetecpagamentos.domain.property.ScheduleProperties
 import br.com.ufrj.coppetecpagamentos.domain.service.EnviarLoteService
 import br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.entity.TransferenciaPendenteDatabase
 import br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.port.EnvioPendentePort
@@ -16,6 +17,7 @@ class BBTransferenciaStp1Schedule(
     private val enviarLoteService: EnviarLoteService,
     private val envioPendentePort: EnvioPendentePort,
     private val togglePort: TogglePort,
+    private val properties: ScheduleProperties
 ) {
 
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
@@ -27,7 +29,7 @@ class BBTransferenciaStp1Schedule(
         zone = BBTransferenciaStp2Schedule.TIME_ZONE
     )
     fun step1() {
-        val active = togglePort.isEnabled(Toggle.BB_TRANSFERENCIA_STP1_SCHEDULE)
+        val active = properties.schedule && togglePort.isEnabled(Toggle.BB_TRANSFERENCIA_STP1_SCHEDULE)
 
         if (active) {
             val remessas = envioPendentePort.getEnvioPendenteDatabase()

@@ -1,5 +1,6 @@
 package br.com.ufrj.coppetecpagamentos.application.port.outbound
 
+import br.com.ufrj.coppetecpagamentos.domain.property.ScheduleProperties
 import br.com.ufrj.coppetecpagamentos.domain.service.EnviarLoteService
 import br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.entity.LoteEnvioPendenteDatabase
 import br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.entity.TransferenciaPendenteDatabase
@@ -22,11 +23,13 @@ class BBTransferenciaScheduleTest {
     private val envioPendentePort: EnvioPendentePort = mockk()
     private val enviarLoteService: EnviarLoteService = mockk()
     private val togglePort: TogglePort = mockk()
+    private val properties: ScheduleProperties = mockk()
 
     private val schedule = BBTransferenciaStp1Schedule(
         envioPendentePort = envioPendentePort,
         enviarLoteService = enviarLoteService,
         togglePort = togglePort,
+        properties = properties
     )
 
 
@@ -34,6 +37,10 @@ class BBTransferenciaScheduleTest {
     fun `should sent single part to enviarLoteService`() {
         every {
             togglePort.isEnabled(any())
+        } returns true
+
+        every {
+            properties.schedule
         } returns true
 
         every {
@@ -101,6 +108,10 @@ class BBTransferenciaScheduleTest {
     fun `should sent tree part to enviarLoteService`() {
         every {
             togglePort.isEnabled(any())
+        } returns true
+
+        every {
+            properties.schedule
         } returns true
 
         every {
@@ -172,6 +183,10 @@ class BBTransferenciaScheduleTest {
         } returns true
 
         every {
+            properties.schedule
+        } returns true
+
+        every {
             envioPendentePort.getEnvioPendenteDatabase()
         } returns listOf(
             LoteEnvioPendenteDatabase(
@@ -237,6 +252,10 @@ class BBTransferenciaScheduleTest {
     fun `should sent five part to enviarLoteService`() {
         every {
             togglePort.isEnabled(any())
+        } returns true
+
+        every {
+            properties.schedule
         } returns true
 
         every {
