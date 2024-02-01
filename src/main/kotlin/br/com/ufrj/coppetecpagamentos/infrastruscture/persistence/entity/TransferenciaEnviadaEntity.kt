@@ -45,7 +45,7 @@ data class TransferenciaEnviadaEntity(
                     tipoCredito = (it[7] as Int?),
                     tipoCreditoDescricao = (it[8] as String?),
                     dataPagamento = ((it[9] as Timestamp?)?.toLocalDateTime()
-                        ?.format(DateTimeFormatter.ISO_DATE_TIME)!!),
+                        ?.format(DateTimeFormatter.ISO_DATE_TIME)),
                     valorPagamento = (it[10] as BigDecimal?),
                     documentoDebito = (it[11] as BigInteger?),
                     indicadorAceite = (it[12] as String?),
