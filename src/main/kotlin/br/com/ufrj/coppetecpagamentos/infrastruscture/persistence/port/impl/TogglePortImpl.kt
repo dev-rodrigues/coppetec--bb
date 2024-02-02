@@ -15,6 +15,7 @@ class TogglePortImpl(
             1 -> response.get().enviarTransferencia!!
             2 -> response.get().consultarPrioridade!!
             3 -> response.get().consultarSemPrioridade!!
+            4 -> response.get().consultarExtrato!!
             else -> false
         }
     }
@@ -25,6 +26,7 @@ class TogglePortImpl(
             ToggleModel("envio", response.get().enviarTransferencia!!),
             ToggleModel("consultaPasso1", response.get().consultarPrioridade!!),
             ToggleModel("consultaPasso2", response.get().consultarSemPrioridade!!),
+            ToggleModel("consultaExtrato", response.get().consultarExtrato!!)
         )
     }
 
@@ -35,6 +37,7 @@ class TogglePortImpl(
             "envio" -> entity.enviarTransferencia = toggle.state
             "consultaPasso1" -> entity.consultarPrioridade = toggle.state
             "consultaPasso2" -> entity.consultarSemPrioridade = toggle.state
+            "consultaExtrato" -> entity.consultarExtrato = toggle.state
         }
 
         val updated = parametros.save(entity)

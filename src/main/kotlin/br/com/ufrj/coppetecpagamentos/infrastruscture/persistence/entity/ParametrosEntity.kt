@@ -17,4 +17,6 @@ data class ParametrosEntity(
     var consultarPrioridade: Boolean? = null,
     @Column(name = "consultaPasso2")
     var consultarSemPrioridade: Boolean? = null,
+    @Column(name = "extrato")
+    var consultarExtrato: Boolean? = null,
 )

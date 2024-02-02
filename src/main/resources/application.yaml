@@ -5,7 +5,7 @@ spring:
   application:
     name: pagamentos
   profiles:
-    active: dev
+    active: prd
 
   datasource:
     hikari:

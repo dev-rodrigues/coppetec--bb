@@ -26,7 +26,7 @@ class WebSecurityConfig : WebMvcConfigurer {
                 "Access-Control-Request-Headers",
                 "Access-Control-Request-Method"
             )
-            .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+            .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
             .allowCredentials(false)
             .maxAge(3600)
     }
