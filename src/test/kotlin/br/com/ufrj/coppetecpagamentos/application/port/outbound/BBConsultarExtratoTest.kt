@@ -1,9 +1,11 @@
 package br.com.ufrj.coppetecpagamentos.application.port.outbound
 
+import br.com.ufrj.coppetecpagamentos.domain.property.ScheduleProperties
 import br.com.ufrj.coppetecpagamentos.domain.service.ExtratoService
 import br.com.ufrj.coppetecpagamentos.fixture.getBBConsultaExtratoResponseDto
 import br.com.ufrj.coppetecpagamentos.fixture.getBBContasAtivas
 import br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.BBContasAtivasRepository
+import br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.port.TogglePort
 import io.micrometer.core.instrument.MeterRegistry
 import io.mockk.every
 import io.mockk.junit5.MockKExtension
@@ -19,15 +21,27 @@ class BBConsultarExtratoTest {
     private val bBContasAtivasRepository: BBContasAtivasRepository = mockk()
     private val extratoService: ExtratoService = mockk()
     private val meterRegistry: MeterRegistry = mockk()
+    private val togglePort: TogglePort = mockk()
+    private val properties: ScheduleProperties = mockk()
 
     private val service = BBConsultarExtrato(
         bBContasAtivasRepository = bBContasAtivasRepository,
         extratoService = extratoService,
-        meterRegistry = meterRegistry
+        meterRegistry = meterRegistry,
+        togglePort = togglePort,
+        properties = properties
     )
 
     @Test
     fun `should send to register bank statement`() {
+
+        every {
+            togglePort.isEnabled(any())
+        } returns true
+
+        every {
+            properties.schedule
+        } returns true
 
         every {
             bBContasAtivasRepository.getContas()
@@ -56,6 +70,14 @@ class BBConsultarExtratoTest {
 
     @Test
     fun `should not execute register when extratoService returned null`() {
+        every {
+            togglePort.isEnabled(any())
+        } returns false
+
+        every {
+            properties.schedule
+        } returns true
+
         every {
             bBContasAtivasRepository.getContas()
         } returns listOf(
