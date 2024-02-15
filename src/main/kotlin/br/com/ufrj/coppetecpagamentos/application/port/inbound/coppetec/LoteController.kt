@@ -1,11 +1,11 @@
 package br.com.ufrj.coppetecpagamentos.application.port.inbound.coppetec
 
+import br.com.ufrj.coppetecpagamentos.domain.service.ConsultarLoteService
+import br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.BBLoteRepository
 import br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.entity.LogLoteEnviadoEntity
 import br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.entity.LoteEnviadoEntity
 import br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.entity.LoteEnviadoEntityPaginated
 import br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.port.LoteRepository
-import org.springframework.data.domain.Page
-import org.springframework.data.domain.PageImpl
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -17,13 +17,22 @@ import java.math.BigInteger
 @RestController
 @RequestMapping("/api/lote")
 class LoteController(
-    private val loteRepository: LoteRepository
+    private val loteRepository: LoteRepository,
+    private val bbLoteRepository: BBLoteRepository,
+    private val consultarLoteService: ConsultarLoteService,
 ) {
 
     @GetMapping
     fun getAll(): ResponseEntity<List<LoteEnviadoEntity>> {
         val response = loteRepository.findAll()
         return ResponseEntity.ok(response)
+    }
+
+    @GetMapping("/{loteId}")
+    fun getLotById(@PathVariable loteId: BigInteger): ResponseEntity<Void> {
+        val lote = bbLoteRepository.findById(loteId).get();
+        consultarLoteService.executar(lote, 0)
+        return ResponseEntity.ok().build()
     }
 
     @GetMapping("/paginated")
