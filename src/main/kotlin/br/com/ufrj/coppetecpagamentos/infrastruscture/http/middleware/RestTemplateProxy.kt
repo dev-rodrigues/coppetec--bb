@@ -51,6 +51,7 @@ class RestTemplateProxy(
             } catch (e: Exception) {
                 logger.warn("error $e")
 
+
                 if (isRetryableException(e) && retryCount < restTemplateProperties.maxRetry) {
 
                     val httpCode = if (e is HttpClientErrorException) {
@@ -64,6 +65,11 @@ class RestTemplateProxy(
                         .tags("http_status", httpCode.toString())
                         .description("Total number of retried HTTP requests")
                         .register(meterRegistry)
+
+                    // fix para o caso de erro 500 na consulta de transferencia
+                    if (httpCode == 500 && httpUri.name == HttpUri.CONSULTAR_TRANSFERENCIA.name) {
+                        return null
+                    }
 
                     logRetryWarning(
                         e = e,

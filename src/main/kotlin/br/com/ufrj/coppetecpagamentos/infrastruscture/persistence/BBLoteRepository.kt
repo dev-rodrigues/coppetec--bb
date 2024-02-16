@@ -9,13 +9,14 @@ import java.math.BigInteger
 interface BBLoteRepository : JpaRepository<BBLoteEntity, BigInteger> {
     @Query(
         "SELECT l FROM BBLoteEntity l " +
-        "WHERE (l.canceladoEm IS NULL)" +
-        "AND (l.estadoRequisicao IN :estadosRequisicao) " +
-        "OR (l.id in (" +
-        "               SELECT t.lote " +
-        "               FROM BBTransferenciaEntity t " +
-        "               WHERE t.estadoPagamento IS NULL) " +
-        "   )"
+                "WHERE (l.canceladoEm IS NULL)" +
+                "AND (l.estadoRequisicao IN :estadosRequisicao) " +
+                "OR (l.id in (" +
+                "               SELECT t.lote " +
+                "               FROM BBTransferenciaEntity t " +
+                "               WHERE t.estadoPagamento IS NULL) " +
+                "   ) " +
+                "ORDER BY l.id DESC"
     )
     fun findLotesByEstadoRequisicao(
         @Param("estadosRequisicao") estados: List<Int> = listOf(1, 2, 8, 10)

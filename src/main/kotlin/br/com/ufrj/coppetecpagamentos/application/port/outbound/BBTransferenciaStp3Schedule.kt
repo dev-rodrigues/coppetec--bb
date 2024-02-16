@@ -7,7 +7,6 @@ import br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.BBLoteReposito
 import br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.port.TogglePort
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.springframework.scheduling.annotation.Async
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 
@@ -20,30 +19,42 @@ class BBTransferenciaStp3Schedule(
 ) {
 
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
+    private var isRunning = false
 
-    @Async
+
     @Scheduled(
-        fixedDelay = 30 * 60 * 1000,
+        fixedDelay = 1,
         zone = BBTransferenciaStp2Schedule.TIME_ZONE
     )
     fun step3() {
-        val active = properties.schedule && togglePort.isEnabled(Toggle.BB_TRANSFERENCIA_STP3_SCHEDULE)
 
-        if (active) {
-            logger.info("STEP 3: CONSULTAR LOTES NÃO PRIORITÁRIOS")
+        if (isRunning) {
+            logger.error("STEP 3: JÁ ESTÁ EM EXECUÇÃO")
+            return
+        }
 
-            val lotes = bBLoteRepository.findLotesByEstadoRequisicao(
-                estados = listOf(1, 2, 8, 10)
-            )
+        try {
+            isRunning = true
+            val active = properties.schedule && togglePort.isEnabled(Toggle.BB_TRANSFERENCIA_STP3_SCHEDULE)
 
-            lotes.forEach {
-                consultarLoteService.executar(
-                    lote = it,
-                    step = 3
+            if (active) {
+                logger.info("STEP 3: CONSULTAR LOTES NÃO PRIORITÁRIOS")
+
+                val lotes = bBLoteRepository.findLotesByEstadoRequisicao(
+                    estados = listOf(4, 5)
                 )
+
+                lotes.forEach {
+                    consultarLoteService.executar(
+                        lote = it,
+                        step = 3
+                    )
+                }
+            } else {
+                logger.warn("STEP 3: CONSULTA DE LOTES NÃO PRIORITÁRIOS DESABILITADO")
             }
-        } else {
-            logger.warn("STEP 3: CONSULTA DE LOTES NÃO PRIORITÁRIOS DESABILITADO")
+        } finally {
+            isRunning = false
         }
     }
 }
