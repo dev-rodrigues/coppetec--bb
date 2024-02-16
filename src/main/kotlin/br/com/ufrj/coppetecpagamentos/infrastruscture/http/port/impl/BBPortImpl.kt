@@ -224,7 +224,7 @@ class BBPortImpl(
             }
 
             CONSULTAR_EXTRATO -> {
-                endpoint = bBProperties.endpoints.baseUrl
+                endpoint = bBProperties.endpoints.extrato
                 logMessage = "URL DE CONSULTA DE TRANSFERENCIAS: {}"
                 logger.info(logMessage, endpoint)
 

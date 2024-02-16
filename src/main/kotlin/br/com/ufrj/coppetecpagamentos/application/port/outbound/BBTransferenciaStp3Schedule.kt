@@ -23,7 +23,7 @@ class BBTransferenciaStp3Schedule(
 
 
     @Scheduled(
-        fixedDelay = 1,
+        fixedDelay = 5 * 60 * 1000,
         zone = BBTransferenciaStp2Schedule.TIME_ZONE
     )
     fun step3() {
@@ -35,7 +35,7 @@ class BBTransferenciaStp3Schedule(
 
         try {
             isRunning = true
-            val active = properties.schedule && togglePort.isEnabled(Toggle.BB_TRANSFERENCIA_STP3_SCHEDULE)
+            val active = false //properties.schedule && togglePort.isEnabled(Toggle.BB_TRANSFERENCIA_STP3_SCHEDULE)
 
             if (active) {
                 logger.info("STEP 3: CONSULTAR LOTES NÃO PRIORITÁRIOS")

@@ -23,14 +23,7 @@ class BBConsultarExtrato(
 ) {
 
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
-
-    private fun timeToRun(): Boolean {
-        val now = LocalDateTime.now()
-        val start = LocalDateTime.of(now.year, now.month, now.dayOfMonth, 8, 0)
-        val end = LocalDateTime.of(now.year, now.month, now.dayOfMonth, 20, 0)
-
-        return now.isAfter(start) && now.isBefore(end)
-    }
+    private var isRunning = false
 
     @Async
     @Scheduled(
@@ -39,47 +32,56 @@ class BBConsultarExtrato(
     )
     fun execute() {
 
-        val active = properties.schedule && togglePort.isEnabled(Toggle.BB_EXTRATO_SCHEDULE)
+        if (isRunning) {
+            log.error("STEP 3: JÁ ESTÁ EM EXECUÇÃO")
+            return
+        }
 
-        if (active && timeToRun()) {
+        try {
+            isRunning = true
+            val active = properties.schedule && togglePort.isEnabled(Toggle.BB_EXTRATO_SCHEDULE)
 
-            val contas = bBContasAtivasRepository.getContas()
+            if (active) {
+                val contas = bBContasAtivasRepository.getContas()
 
-            log.info("CONSULTANDO EXTRATO DE ${contas.size} CONTAS")
+                log.info("CONSULTANDO EXTRATO DE ${contas.size} CONTAS")
 
-            if (contas.isNotEmpty()) {
-                contas.forEachIndexed { index, conta ->
-                    log.info("CONSULTANDO EXTRATO DA CONTA ${index + 1} DE ${contas.size}")
+                if (contas.isNotEmpty()) {
+                    contas.forEachIndexed { index, conta ->
+                        log.info("CONSULTANDO EXTRATO DA CONTA ${index + 1} DE ${contas.size}")
 
-                    try {
-                        val result = extratoService
-                            .getExtrato(
-                                agencia = conta.agenciaSemDv!!,
-                                conta = conta.contaCorrenteSemDv!!,
-                                dataInicioSolicitacao = conta.consultaPeriodoDe!!,
-                                dataFimSolicitacao = conta.consultaPeriodoAte!!,
+                        try {
+                            val result = extratoService
+                                .getExtrato(
+                                    agencia = conta.agenciaSemDv!!,
+                                    conta = conta.contaCorrenteSemDv!!,
+                                    dataInicioSolicitacao = conta.consultaPeriodoDe!!,
+                                    dataFimSolicitacao = conta.consultaPeriodoAte!!,
+                                )
+
+                            extratoService.register(conta, result)
+                            meterRegistry.counter("bb.consultar.extrato", "status", "success").increment()
+
+                        } catch (e: Exception) {
+                            log.error(
+                                "ERRO AO CONSULTAR EXTRATO: " +
+                                        "AG ${conta.agencia} " +
+                                        "CC: ${conta.contaCorrente} - " +
+                                        "ERRO: ${e.message}"
                             )
-
-                        extratoService.register(conta, result)
-                        meterRegistry.counter("bb.consultar.extrato", "status", "success").increment()
-
-                    } catch (e: Exception) {
-                        log.error(
-                            "ERRO AO CONSULTAR EXTRATO: " +
-                                    "AG ${conta.agencia} " +
-                                    "CC: ${conta.contaCorrente} - " +
-                                    "ERRO: ${e.message}"
-                        )
-                        meterRegistry.counter("bb.consultar.extrato", "status", "error").increment()
+                            meterRegistry.counter("bb.consultar.extrato", "status", "error").increment()
+                        }
                     }
+                } else {
+                    log.info("NENHUMA CONTA ATIVA PARA CONSULTAR EXTRATO")
+                    meterRegistry.counter("bb.consultar.extrato", "status", "empty").increment()
                 }
             } else {
-                log.info("NENHUMA CONTA ATIVA PARA CONSULTAR EXTRATO")
-                meterRegistry.counter("bb.consultar.extrato", "status", "empty").increment()
+                log.warn("CONSULTA DE EXTRATO DESABILITADA")
+                meterRegistry.counter("bb.consultar.extrato", "status", "disabled").increment()
             }
-        } else {
-            log.warn("CONSULTA DE EXTRATO DESABILITADA")
-            meterRegistry.counter("bb.consultar.extrato", "status", "disabled").increment()
+        } finally {
+            isRunning = false
         }
     }
 }
