@@ -1,5 +1,6 @@
 package br.com.ufrj.coppetecpagamentos.application.port.outbound
 
+import br.com.ufrj.coppetecpagamentos.domain.exception.BadRequestExtratoException
 import br.com.ufrj.coppetecpagamentos.domain.model.Toggle
 import br.com.ufrj.coppetecpagamentos.domain.property.ScheduleProperties
 import br.com.ufrj.coppetecpagamentos.domain.service.ExtratoService
@@ -11,7 +12,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Async
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
-import java.time.LocalDateTime
 
 @Component
 class BBConsultarExtrato(
@@ -60,9 +60,15 @@ class BBConsultarExtrato(
                                 )
 
                             extratoService.register(conta, result)
+//                            result!!.listaLancamento.forEach { it -> println(it.indicadorSinalLancamento) }
                             meterRegistry.counter("bb.consultar.extrato", "status", "success").increment()
 
+
+                        } catch (e: BadRequestExtratoException) {
+                            extratoService.register(conta, null)
+
                         } catch (e: Exception) {
+
                             log.error(
                                 "ERRO AO CONSULTAR EXTRATO: " +
                                         "AG ${conta.agencia} " +

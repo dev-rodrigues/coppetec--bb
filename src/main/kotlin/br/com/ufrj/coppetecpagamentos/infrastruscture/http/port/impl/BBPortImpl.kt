@@ -1,5 +1,6 @@
 package br.com.ufrj.coppetecpagamentos.infrastruscture.http.port.impl
 
+import br.com.ufrj.coppetecpagamentos.domain.exception.BadRequestExtratoException
 import br.com.ufrj.coppetecpagamentos.domain.model.API
 import br.com.ufrj.coppetecpagamentos.domain.model.HttpUri
 import br.com.ufrj.coppetecpagamentos.domain.model.HttpUri.*
@@ -26,7 +27,6 @@ import org.springframework.util.MultiValueMap
 import org.springframework.web.client.RestTemplate
 import org.springframework.web.util.UriComponentsBuilder
 import java.math.BigInteger
-import java.util.Objects
 import java.util.Objects.nonNull
 import java.util.regex.Pattern
 
@@ -152,8 +152,13 @@ class BBPortImpl(
         return if (nonNull(response)) {
             response!!
         } else {
-            logger.error("Erro ao consultar extrato")
-            throw RuntimeException("Erro ao consultar extrato")
+            throw BadRequestExtratoException(
+                message = "Erro ao consultar extrato",
+                ag = agencia,
+                cc = conta,
+                de = dataInicioSolicitacao,
+                ate = dataFimSolicitacao
+            )
         }
     }
 

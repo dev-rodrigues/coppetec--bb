@@ -1,6 +1,7 @@
 package br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.entity
 
 import java.sql.Timestamp
+import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 data class BBContasAtivas(
@@ -14,7 +15,6 @@ data class BBContasAtivas(
 ) {
     companion object {
         fun map(result: List<Array<Any>>): List<BBContasAtivas> {
-            val formatter = DateTimeFormatter.ofPattern("ddMMyyyy")
 
             return if (result.isEmpty()) {
                 emptyList()
@@ -25,12 +25,17 @@ data class BBContasAtivas(
                     agenciaSemDv = (it[2] as String?),
                     contaCorrente = (it[3] as String?),
                     contaCorrenteSemDv = (it[4] as String?),
-                    consultaPeriodoDe = ((it[5] as Timestamp?)?.toLocalDateTime()
-                        ?.format(formatter)!!),
-                    consultaPeriodoAte = ((it[6] as Timestamp?)?.toLocalDateTime()
-                        ?.format(formatter)!!),
+                    consultaPeriodoDe = formatAndRemoveLeadingZero((it[5] as Timestamp?)?.toLocalDateTime()),
+                    consultaPeriodoAte = formatAndRemoveLeadingZero((it[6] as Timestamp?)?.toLocalDateTime())
+
                 )
             }.toList()
+        }
+
+        private fun formatAndRemoveLeadingZero(date: LocalDateTime?): String {
+            val formatter = DateTimeFormatter.ofPattern("ddMMyyyy")
+            val formattedDate = date?.format(formatter) ?: ""
+            return if (formattedDate.startsWith("0")) formattedDate.substring(1) else formattedDate
         }
     }
 }

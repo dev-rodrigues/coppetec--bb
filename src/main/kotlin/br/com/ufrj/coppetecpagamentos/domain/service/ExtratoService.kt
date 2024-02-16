@@ -77,7 +77,6 @@ class ExtratoService(
     fun register(consulta: BBContasAtivas, response: BBConsultaExtratoResponseDto?) {
         val transactionTemplate = TransactionTemplate(transactionManager)
 
-
         transactionTemplate.execute(object : TransactionCallbackWithoutResult() {
             override fun doInTransactionWithoutResult(status: TransactionStatus) {
 
