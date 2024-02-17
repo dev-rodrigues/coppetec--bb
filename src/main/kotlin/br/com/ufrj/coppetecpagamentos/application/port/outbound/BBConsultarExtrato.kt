@@ -27,7 +27,7 @@ class BBConsultarExtrato(
 
     @Async
     @Scheduled(
-        fixedDelay = 5 * 60 * 1000,
+        cron = "0 8 * * *",
         zone = BBTransferenciaStp2Schedule.TIME_ZONE
     )
     fun execute() {
