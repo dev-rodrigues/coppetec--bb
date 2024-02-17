@@ -35,7 +35,7 @@ class BBTransferenciaStp3Schedule(
 
         try {
             isRunning = true
-            val active = false //properties.schedule && togglePort.isEnabled(Toggle.BB_TRANSFERENCIA_STP3_SCHEDULE)
+            val active = properties.schedule && togglePort.isEnabled(Toggle.BB_TRANSFERENCIA_STP3_SCHEDULE)
 
             if (active) {
                 logger.info("STEP 3: CONSULTAR LOTES NÃO PRIORITÁRIOS")

@@ -29,7 +29,7 @@ class BBTransferenciaStp1Schedule(
         zone = BBTransferenciaStp2Schedule.TIME_ZONE
     )
     fun step1() {
-        val active = false //properties.schedule && togglePort.isEnabled(Toggle.BB_TRANSFERENCIA_STP1_SCHEDULE)
+        val active = properties.schedule && togglePort.isEnabled(Toggle.BB_TRANSFERENCIA_STP1_SCHEDULE)
 
         if (active) {
             val remessas = envioPendentePort.getEnvioPendenteDatabase()

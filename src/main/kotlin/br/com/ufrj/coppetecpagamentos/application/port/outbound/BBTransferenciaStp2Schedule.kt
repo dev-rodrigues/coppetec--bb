@@ -31,7 +31,7 @@ class BBTransferenciaStp2Schedule(
         zone = TIME_ZONE
     )
     fun step2() {
-        val active = false //properties.schedule && togglePort.isEnabled(Toggle.BB_TRANSFERENCIA_STP2_SCHEDULE)
+        val active = properties.schedule && togglePort.isEnabled(Toggle.BB_TRANSFERENCIA_STP2_SCHEDULE)
 
         if (active) {
             logger.info("STEP 2: CONSULTAR LOTES PRIORITÁRIOS")
