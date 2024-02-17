@@ -26,10 +26,7 @@ class BBConsultarExtrato(
     private var isRunning = false
 
     @Async
-    @Scheduled(
-        cron = "0 8 * * *",
-        zone = BBTransferenciaStp2Schedule.TIME_ZONE
-    )
+    @Scheduled(cron = "0 0 8 * * *")
     fun execute() {
 
         if (isRunning) {
