@@ -45,4 +45,19 @@ class DateUtilTest {
         )
         assert(response == expected)
     }
+
+    @Test
+    fun `should map 1012024L bb date`() {
+        val bbDate = 1012024L
+        val response = DateUtil.formatDate(bbDate)
+        val expected = LocalDateTime.of(
+            /* year = */ 2024,
+            /* month = */ 1,
+            /* dayOfMonth = */ 1,
+            /* hour = */ 0,
+            /* minute = */ 0,
+            /* second = */ 0
+        )
+        assert(response == expected)
+    }
 }
