@@ -3,7 +3,6 @@ package br.com.ufrj.coppetecpagamentos.application.port.outbound
 import br.com.ufrj.coppetecpagamentos.domain.model.Toggle
 import br.com.ufrj.coppetecpagamentos.domain.property.ScheduleProperties
 import br.com.ufrj.coppetecpagamentos.domain.service.ConsultarLoteService
-import br.com.ufrj.coppetecpagamentos.domain.singleton.ProcessType
 import br.com.ufrj.coppetecpagamentos.domain.singleton.ProcessType.NON_PRIORITY_PAYMENT_INQUIRY_PROCESS
 import br.com.ufrj.coppetecpagamentos.domain.singleton.SchedulerExecutionTracker
 import br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.BBLoteRepository

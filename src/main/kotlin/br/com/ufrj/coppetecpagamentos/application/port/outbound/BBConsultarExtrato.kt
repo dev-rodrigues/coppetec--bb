@@ -23,7 +23,6 @@ class BBConsultarExtrato(
     private val meterRegistry: MeterRegistry,
     private val togglePort: TogglePort,
     private val properties: ScheduleProperties,
-    private val executionTracker: SchedulerExecutionTracker
 ) {
 
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
@@ -43,7 +42,7 @@ class BBConsultarExtrato(
             val active = properties.schedule && togglePort.isEnabled(Toggle.BB_EXTRATO_SCHEDULE)
 
             if (active) {
-                executionTracker.recordExecutionStart(BANK_STATEMENT_INQUIRY_PROCESS)
+                SchedulerExecutionTracker.getInstance().recordExecutionStart(BANK_STATEMENT_INQUIRY_PROCESS)
 
                 val contas = bBContasAtivasRepository.getContas()
 
@@ -91,7 +90,7 @@ class BBConsultarExtrato(
             }
         } finally {
             isRunning = false
-            executionTracker.recordExecutionEnd(
+            SchedulerExecutionTracker.getInstance().recordExecutionEnd(
                 BANK_STATEMENT_INQUIRY_PROCESS
             )
         }

@@ -33,7 +33,6 @@ class BBConsultarExtratoTest {
         meterRegistry = meterRegistry,
         togglePort = togglePort,
         properties = properties,
-        executionTracker = executionTracker
     )
 
     @Test
