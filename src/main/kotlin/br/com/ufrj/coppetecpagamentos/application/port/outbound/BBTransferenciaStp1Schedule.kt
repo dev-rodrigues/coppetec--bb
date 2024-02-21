@@ -3,6 +3,9 @@ package br.com.ufrj.coppetecpagamentos.application.port.outbound
 import br.com.ufrj.coppetecpagamentos.domain.model.Toggle
 import br.com.ufrj.coppetecpagamentos.domain.property.ScheduleProperties
 import br.com.ufrj.coppetecpagamentos.domain.service.EnviarLoteService
+import br.com.ufrj.coppetecpagamentos.domain.singleton.ProcessType
+import br.com.ufrj.coppetecpagamentos.domain.singleton.ProcessType.PAYMENT_SENDING_PROCESS
+import br.com.ufrj.coppetecpagamentos.domain.singleton.SchedulerExecutionTracker
 import br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.entity.TransferenciaPendenteDatabase
 import br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.port.EnvioPendentePort
 import br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.port.TogglePort
@@ -17,7 +20,7 @@ class BBTransferenciaStp1Schedule(
     private val enviarLoteService: EnviarLoteService,
     private val envioPendentePort: EnvioPendentePort,
     private val togglePort: TogglePort,
-    private val properties: ScheduleProperties
+    private val properties: ScheduleProperties,
 ) {
 
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
@@ -25,36 +28,41 @@ class BBTransferenciaStp1Schedule(
 
     @Async
     @Scheduled(
-        fixedDelay = 60 * 1000,
-        zone = BBTransferenciaStp2Schedule.TIME_ZONE
+        fixedDelay = 60 * 1000, zone = BBTransferenciaStp2Schedule.TIME_ZONE
     )
     fun step1() {
         val active = properties.schedule && togglePort.isEnabled(Toggle.BB_TRANSFERENCIA_STP1_SCHEDULE)
 
         if (active) {
-            val remessas = envioPendentePort.getEnvioPendenteDatabase()
+            try {
+                val remessas = envioPendentePort.getEnvioPendenteDatabase()
 
-            logger.info("STEP 1: TOTAL DE TRANSFERÊNCIAS PENDENTES DE ENVIO {} ", remessas.size)
+                SchedulerExecutionTracker.getInstance().recordExecutionStart(PAYMENT_SENDING_PROCESS)
 
-            remessas.forEach {
+                logger.info("STEP 1: TOTAL DE TRANSFERÊNCIAS PENDENTES DE ENVIO {} ", remessas.size)
 
-                val transferencias = envioPendentePort.getTransferenciasPendente(
-                    contaFonte = it.contaOrigem!!,
-                    tipoPagamento = it.tipoPagamento!!
-                )
+                remessas.forEach {
 
-                val parts: List<List<TransferenciaPendenteDatabase>> = transferencias.chunked(parts)
+                    val transferencias = envioPendentePort.getTransferenciasPendente(
+                        contaFonte = it.contaOrigem!!, tipoPagamento = it.tipoPagamento!!
+                    )
 
-                logger.info(
-                    "NUMERO DE TRANSFERENCIAS: {} - GERADO {} PARTES DE TRANSFERENCIA",
-                    transferencias.size,
-                    parts.size
-                )
+                    val parts: List<List<TransferenciaPendenteDatabase>> = transferencias.chunked(parts)
 
-                parts.forEach { part ->
-                    enviarLoteService.executar(it, part)
+                    logger.info(
+                        "NUMERO DE TRANSFERENCIAS: {} - GERADO {} PARTES DE TRANSFERENCIA",
+                        transferencias.size,
+                        parts.size
+                    )
+
+                    parts.forEach { part ->
+                        enviarLoteService.executar(it, part)
+                    }
                 }
+            } finally {
+                SchedulerExecutionTracker.getInstance().recordExecutionEnd(PAYMENT_SENDING_PROCESS)
             }
+
         } else {
             logger.warn("STEP 1: ENVIO DE TRANSFERÊNCIAS PENDENTES DESABILITADO")
         }

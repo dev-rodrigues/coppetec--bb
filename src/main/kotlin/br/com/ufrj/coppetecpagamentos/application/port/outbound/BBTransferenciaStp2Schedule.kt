@@ -3,6 +3,9 @@ package br.com.ufrj.coppetecpagamentos.application.port.outbound
 import br.com.ufrj.coppetecpagamentos.domain.model.Toggle
 import br.com.ufrj.coppetecpagamentos.domain.property.ScheduleProperties
 import br.com.ufrj.coppetecpagamentos.domain.service.ConsultarLoteService
+import br.com.ufrj.coppetecpagamentos.domain.singleton.ProcessType
+import br.com.ufrj.coppetecpagamentos.domain.singleton.ProcessType.*
+import br.com.ufrj.coppetecpagamentos.domain.singleton.SchedulerExecutionTracker
 import br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.BBLoteRepository
 import br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.port.TogglePort
 import org.slf4j.Logger
@@ -27,25 +30,31 @@ class BBTransferenciaStp2Schedule(
 
     @Async
     @Scheduled(
-        fixedDelay = 5 * 60 * 1000,
-        zone = TIME_ZONE
+        fixedDelay = 5 * 60 * 1000, zone = TIME_ZONE
     )
     fun step2() {
         val active = properties.schedule && togglePort.isEnabled(Toggle.BB_TRANSFERENCIA_STP2_SCHEDULE)
 
         if (active) {
-            logger.info("STEP 2: CONSULTAR LOTES PRIORITÁRIOS")
+            try {
+                logger.info("STEP 2: CONSULTAR LOTES PRIORITÁRIOS")
+                SchedulerExecutionTracker.getInstance().recordExecutionStart(PRIORITY_PAYMENT_INQUIRY_PROCESS)
 
-            val lotes = bBLoteRepository.findLotesByEstadoRequisicao()
+                val lotes = bBLoteRepository.findLotesByEstadoRequisicao()
 
-            logger.info("STEP 2: TOTAL DE LOTES PENDENTES DE CONSULTA {} ", lotes.size)
+                logger.info("STEP 2: TOTAL DE LOTES PENDENTES DE CONSULTA {} ", lotes.size)
 
-            lotes.forEach {
-                consultarLoteService.executar(
-                    lote = it,
-                    step = 2
+                lotes.forEach {
+                    consultarLoteService.executar(
+                        lote = it, step = 2
+                    )
+                }
+            } finally {
+                SchedulerExecutionTracker.getInstance().recordExecutionEnd(
+                    PRIORITY_PAYMENT_INQUIRY_PROCESS
                 )
             }
+
         } else {
             logger.warn("STEP 2: CONSULTA DE LOTES PRIORITÁRIOS DESABILITADO")
         }

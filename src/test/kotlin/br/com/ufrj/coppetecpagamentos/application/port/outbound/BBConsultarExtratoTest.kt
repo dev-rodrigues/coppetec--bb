@@ -2,6 +2,8 @@ package br.com.ufrj.coppetecpagamentos.application.port.outbound
 
 import br.com.ufrj.coppetecpagamentos.domain.property.ScheduleProperties
 import br.com.ufrj.coppetecpagamentos.domain.service.ExtratoService
+import br.com.ufrj.coppetecpagamentos.domain.singleton.ProcessType
+import br.com.ufrj.coppetecpagamentos.domain.singleton.SchedulerExecutionTracker
 import br.com.ufrj.coppetecpagamentos.fixture.getBBConsultaExtratoResponseDto
 import br.com.ufrj.coppetecpagamentos.fixture.getBBContasAtivas
 import br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.BBContasAtivasRepository
@@ -23,13 +25,15 @@ class BBConsultarExtratoTest {
     private val meterRegistry: MeterRegistry = mockk()
     private val togglePort: TogglePort = mockk()
     private val properties: ScheduleProperties = mockk()
+    private val executionTracker: SchedulerExecutionTracker = mockk()
 
     private val service = BBConsultarExtrato(
         bBContasAtivasRepository = bBContasAtivasRepository,
         extratoService = extratoService,
         meterRegistry = meterRegistry,
         togglePort = togglePort,
-        properties = properties
+        properties = properties,
+        executionTracker = executionTracker
     )
 
     @Test
@@ -38,6 +42,14 @@ class BBConsultarExtratoTest {
         every {
             togglePort.isEnabled(any())
         } returns true
+
+        justRun {
+            executionTracker.recordExecutionStart(ProcessType.BANK_STATEMENT_INQUIRY_PROCESS)
+        }
+
+        justRun {
+            executionTracker.recordExecutionEnd(ProcessType.BANK_STATEMENT_INQUIRY_PROCESS)
+        }
 
         every {
             properties.schedule
@@ -73,6 +85,14 @@ class BBConsultarExtratoTest {
         every {
             togglePort.isEnabled(any())
         } returns false
+
+        justRun {
+            executionTracker.recordExecutionStart(ProcessType.BANK_STATEMENT_INQUIRY_PROCESS)
+        }
+
+        justRun {
+            executionTracker.recordExecutionEnd(ProcessType.BANK_STATEMENT_INQUIRY_PROCESS)
+        }
 
         every {
             properties.schedule

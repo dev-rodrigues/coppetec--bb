@@ -42,7 +42,7 @@ class UtilsKtTest {
     }
 
     @Test
-    fun `qweqweq qwe`() {
+    fun `format date`() {
         val data = "12012024"
         val response = formatarData(data.toBigInteger())
         println(response)

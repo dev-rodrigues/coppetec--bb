@@ -4,6 +4,9 @@ import br.com.ufrj.coppetecpagamentos.domain.exception.BadRequestExtratoExceptio
 import br.com.ufrj.coppetecpagamentos.domain.model.Toggle
 import br.com.ufrj.coppetecpagamentos.domain.property.ScheduleProperties
 import br.com.ufrj.coppetecpagamentos.domain.service.ExtratoService
+import br.com.ufrj.coppetecpagamentos.domain.singleton.ProcessType
+import br.com.ufrj.coppetecpagamentos.domain.singleton.ProcessType.BANK_STATEMENT_INQUIRY_PROCESS
+import br.com.ufrj.coppetecpagamentos.domain.singleton.SchedulerExecutionTracker
 import br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.BBContasAtivasRepository
 import br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.port.TogglePort
 import io.micrometer.core.instrument.MeterRegistry
@@ -19,7 +22,8 @@ class BBConsultarExtrato(
     private val extratoService: ExtratoService,
     private val meterRegistry: MeterRegistry,
     private val togglePort: TogglePort,
-    private val properties: ScheduleProperties
+    private val properties: ScheduleProperties,
+    private val executionTracker: SchedulerExecutionTracker
 ) {
 
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
@@ -39,6 +43,8 @@ class BBConsultarExtrato(
             val active = properties.schedule && togglePort.isEnabled(Toggle.BB_EXTRATO_SCHEDULE)
 
             if (active) {
+                executionTracker.recordExecutionStart(BANK_STATEMENT_INQUIRY_PROCESS)
+
                 val contas = bBContasAtivasRepository.getContas()
 
                 log.info("CONSULTANDO EXTRATO DE ${contas.size} CONTAS")
@@ -85,6 +91,9 @@ class BBConsultarExtrato(
             }
         } finally {
             isRunning = false
+            executionTracker.recordExecutionEnd(
+                BANK_STATEMENT_INQUIRY_PROCESS
+            )
         }
     }
 }

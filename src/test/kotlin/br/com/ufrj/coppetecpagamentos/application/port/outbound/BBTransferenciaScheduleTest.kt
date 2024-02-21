@@ -2,6 +2,8 @@ package br.com.ufrj.coppetecpagamentos.application.port.outbound
 
 import br.com.ufrj.coppetecpagamentos.domain.property.ScheduleProperties
 import br.com.ufrj.coppetecpagamentos.domain.service.EnviarLoteService
+import br.com.ufrj.coppetecpagamentos.domain.singleton.ProcessType
+import br.com.ufrj.coppetecpagamentos.domain.singleton.SchedulerExecutionTracker
 import br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.entity.LoteEnvioPendenteDatabase
 import br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.entity.TransferenciaPendenteDatabase
 import br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.port.EnvioPendentePort
@@ -29,7 +31,7 @@ class BBTransferenciaScheduleTest {
         envioPendentePort = envioPendentePort,
         enviarLoteService = enviarLoteService,
         togglePort = togglePort,
-        properties = properties
+        properties = properties,
     )
 
 
