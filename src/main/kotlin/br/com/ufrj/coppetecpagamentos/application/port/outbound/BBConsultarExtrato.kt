@@ -4,7 +4,6 @@ import br.com.ufrj.coppetecpagamentos.domain.exception.BadRequestExtratoExceptio
 import br.com.ufrj.coppetecpagamentos.domain.model.Toggle
 import br.com.ufrj.coppetecpagamentos.domain.property.ScheduleProperties
 import br.com.ufrj.coppetecpagamentos.domain.service.ExtratoService
-import br.com.ufrj.coppetecpagamentos.domain.singleton.ProcessType
 import br.com.ufrj.coppetecpagamentos.domain.singleton.ProcessType.BANK_STATEMENT_INQUIRY_PROCESS
 import br.com.ufrj.coppetecpagamentos.domain.singleton.SchedulerExecutionTracker
 import br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.BBContasAtivasRepository
@@ -29,7 +28,9 @@ class BBConsultarExtrato(
     private var isRunning = false
 
     @Async
-    @Scheduled(cron = "0 0 8 * * *")
+    @Scheduled(
+        fixedDelay = 60 * 1000, zone = BBTransferenciaStp2Schedule.TIME_ZONE
+    )
     fun execute() {
 
         if (isRunning) {
@@ -62,7 +63,6 @@ class BBConsultarExtrato(
                                 )
 
                             extratoService.register(conta, result)
-//                            result!!.listaLancamento.forEach { it -> println(it.indicadorSinalLancamento) }
                             meterRegistry.counter("bb.consultar.extrato", "status", "success").increment()
 
 
