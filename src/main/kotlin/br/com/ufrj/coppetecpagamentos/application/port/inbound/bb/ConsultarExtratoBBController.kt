@@ -6,9 +6,10 @@ import br.com.ufrj.coppetecpagamentos.infrastruscture.http.dto.response.BBConsul
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import java.util.concurrent.CompletableFuture
+import java.util.concurrent.CompletableFuture.runAsync
 
 @RestController
 @RequestMapping("/bb/extrato")
@@ -17,10 +18,10 @@ class ConsultarExtratoBBController(
     private val extratoService: ExtratoService
 ) {
 
-    @GetMapping()
-    fun get(): ResponseEntity<Void> {
+    @PostMapping
+    fun post(): ResponseEntity<Void> {
 
-        CompletableFuture.runAsync {
+        runAsync {
             bBConsultarExtrato.execute()
         }
 
@@ -35,13 +36,13 @@ class ConsultarExtratoBBController(
         @PathVariable ate: String
     ): ResponseEntity<BBConsultaExtratoResponseDto?> {
 
-        val r = extratoService.getExtrato(
-            agencia = ag,
-            conta = cc,
-            dataInicioSolicitacao = de,
-            dataFimSolicitacao = ate
+        return ResponseEntity.ok(
+            extratoService.getExtrato(
+                agencia = ag,
+                conta = cc,
+                dataInicioSolicitacao = de,
+                dataFimSolicitacao = ate
+            )
         )
-
-        return ResponseEntity.ok(r)
     }
 }

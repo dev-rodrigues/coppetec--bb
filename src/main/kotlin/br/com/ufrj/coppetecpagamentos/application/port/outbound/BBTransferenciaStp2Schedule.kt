@@ -32,7 +32,7 @@ class BBTransferenciaStp2Schedule(
         fixedDelay = 5 * 60 * 1000, zone = TIME_ZONE
     )
     fun step2() {
-        val active = properties.schedule && togglePort.isEnabled(Toggle.BB_TRANSFERENCIA_STP2_SCHEDULE)
+        val active = false //properties.schedule && togglePort.isEnabled(Toggle.BB_TRANSFERENCIA_STP2_SCHEDULE)
 
         if (active) {
             try {

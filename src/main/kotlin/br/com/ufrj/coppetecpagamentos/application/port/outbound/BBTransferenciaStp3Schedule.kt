@@ -37,7 +37,7 @@ class BBTransferenciaStp3Schedule(
 
         try {
             isRunning = true
-            val active = properties.schedule && togglePort.isEnabled(Toggle.BB_TRANSFERENCIA_STP3_SCHEDULE)
+            val active = false //properties.schedule && togglePort.isEnabled(Toggle.BB_TRANSFERENCIA_STP3_SCHEDULE)
 
             if (active) {
                 SchedulerExecutionTracker.getInstance().recordExecutionStart(NON_PRIORITY_PAYMENT_INQUIRY_PROCESS)

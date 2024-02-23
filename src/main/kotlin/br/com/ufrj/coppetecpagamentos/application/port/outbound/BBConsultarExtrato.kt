@@ -40,7 +40,7 @@ class BBConsultarExtrato(
 
         try {
             isRunning = true
-            val active = properties.schedule && togglePort.isEnabled(Toggle.BB_EXTRATO_SCHEDULE)
+            val active = false// properties.schedule && togglePort.isEnabled(Toggle.BB_EXTRATO_SCHEDULE)
 
             if (active) {
                 SchedulerExecutionTracker.getInstance().recordExecutionStart(BANK_STATEMENT_INQUIRY_PROCESS)
