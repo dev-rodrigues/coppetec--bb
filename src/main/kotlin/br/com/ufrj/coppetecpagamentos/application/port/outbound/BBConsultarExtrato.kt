@@ -2,6 +2,7 @@ package br.com.ufrj.coppetecpagamentos.application.port.outbound
 
 import br.com.ufrj.coppetecpagamentos.domain.exception.BadRequestExtratoException
 import br.com.ufrj.coppetecpagamentos.domain.model.Toggle
+import br.com.ufrj.coppetecpagamentos.domain.model.Toggle.BB_EXTRATO_SCHEDULE
 import br.com.ufrj.coppetecpagamentos.domain.property.ScheduleProperties
 import br.com.ufrj.coppetecpagamentos.domain.service.ExtratoService
 import br.com.ufrj.coppetecpagamentos.domain.singleton.ProcessType.BANK_STATEMENT_INQUIRY_PROCESS
@@ -40,7 +41,7 @@ class BBConsultarExtrato(
 
         try {
             isRunning = true
-            val active = false// properties.schedule && togglePort.isEnabled(Toggle.BB_EXTRATO_SCHEDULE)
+            val active = properties.schedule && togglePort.isEnabled(BB_EXTRATO_SCHEDULE)
 
             if (active) {
                 SchedulerExecutionTracker.getInstance().recordExecutionStart(BANK_STATEMENT_INQUIRY_PROCESS)

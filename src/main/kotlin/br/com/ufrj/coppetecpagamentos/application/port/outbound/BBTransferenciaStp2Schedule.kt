@@ -1,6 +1,7 @@
 package br.com.ufrj.coppetecpagamentos.application.port.outbound
 
 import br.com.ufrj.coppetecpagamentos.domain.model.Toggle
+import br.com.ufrj.coppetecpagamentos.domain.model.Toggle.BB_TRANSFERENCIA_STP2_SCHEDULE
 import br.com.ufrj.coppetecpagamentos.domain.property.ScheduleProperties
 import br.com.ufrj.coppetecpagamentos.domain.service.ConsultarLoteService
 import br.com.ufrj.coppetecpagamentos.domain.singleton.ProcessType.PRIORITY_PAYMENT_INQUIRY_PROCESS
@@ -32,7 +33,7 @@ class BBTransferenciaStp2Schedule(
         fixedDelay = 5 * 60 * 1000, zone = TIME_ZONE
     )
     fun step2() {
-        val active = false //properties.schedule && togglePort.isEnabled(Toggle.BB_TRANSFERENCIA_STP2_SCHEDULE)
+        val active = properties.schedule && togglePort.isEnabled(BB_TRANSFERENCIA_STP2_SCHEDULE)
 
         if (active) {
             try {

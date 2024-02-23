@@ -1,6 +1,7 @@
 package br.com.ufrj.coppetecpagamentos.application.port.outbound
 
 import br.com.ufrj.coppetecpagamentos.domain.model.Toggle
+import br.com.ufrj.coppetecpagamentos.domain.model.Toggle.BB_TRANSFERENCIA_STP1_SCHEDULE
 import br.com.ufrj.coppetecpagamentos.domain.property.ScheduleProperties
 import br.com.ufrj.coppetecpagamentos.domain.service.EnviarLoteService
 import br.com.ufrj.coppetecpagamentos.domain.singleton.ProcessType.PAYMENT_SENDING_PROCESS
@@ -30,7 +31,7 @@ class BBTransferenciaStp1Schedule(
         fixedDelay = 60 * 1000, zone = BBTransferenciaStp2Schedule.TIME_ZONE
     )
     fun step1() {
-        val active = false //properties.schedule && togglePort.isEnabled(Toggle.BB_TRANSFERENCIA_STP1_SCHEDULE)
+        val active = properties.schedule && togglePort.isEnabled(BB_TRANSFERENCIA_STP1_SCHEDULE)
 
         if (active) {
             try {
