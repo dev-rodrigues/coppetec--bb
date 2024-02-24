@@ -1,6 +1,7 @@
 package br.com.ufrj.coppetecpagamentos.domain.service
 
 import br.com.ufrj.coppetecpagamentos.domain.model.API
+import br.com.ufrj.coppetecpagamentos.infrastruscture.http.dto.response.BBConsultaTransferenciaResponseDto
 import br.com.ufrj.coppetecpagamentos.infrastruscture.http.port.BBPort
 import br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.BBDevolucaoTransferenciaEntityRepository
 import br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.BBEstadoTransferenciaEntityRepository
@@ -8,9 +9,11 @@ import br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.BBLoteReposito
 import br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.BBTransferenciaEntityRepository
 import br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.entity.BBDevolucaoTransferenciaEntity
 import br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.entity.BBLoteEntity
+import br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.entity.BBTransferenciaEntity
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
+import java.math.BigInteger
 import java.time.LocalDateTime
 import java.util.Objects.nonNull
 
@@ -58,46 +61,12 @@ class ConsultarLoteService(
                     )
 
                     if (bbTransferencia != null) {
-                        logger.info(
-                            "STEP ${step}: TRANSFERENCIA ${it.id!!} DO LOTE ${loteAtualizado.id!!} CONSULTADA COM SUCESSO"
+                        processaTransferencia(
+                            step = step,
+                            transferencia = it,
+                            lote = loteAtualizado.id!!,
+                            bbTransferencia = bbTransferencia
                         )
-
-                        val estadoPagamento = bBEstadoTransferenciaEntityRepository
-                            .findByEstadoPagamentoIgnoreCase(bbTransferencia.estadoPagamento!!)
-
-                        val transferenciaDbAtualizada = it.atualizarTransferenciaComConsulta(
-                            bbTransferencia = bbTransferencia,
-                            estadoPagamento = estadoPagamento
-                        )
-                        logger.info(
-                            "STEP ${step}: TRANSFERENCIA ${it.id!!} DO LOTE ${loteAtualizado.id!!} ATUALIZADA COM SUCESSO"
-                        )
-
-                        bbTransferenciasRepository.save(transferenciaDbAtualizada)
-
-                        val dbTransferenciaDevolucao = bbTransferencia.listaDevolucao?.map { devolucao ->
-                            BBDevolucaoTransferenciaEntity(
-                                id = null,
-                                transferenciaId = it.id!!,
-                                codigoMotivo = devolucao.codigoMotivo,
-                                dataDevolucao = LocalDateTime.now(),
-                                valorDevolucao = devolucao.valorDevolucao,
-                            )
-                        }
-
-                        val devolucoesRegistradas =
-                            bBDevolucaoTransferenciaEntityRepository.findAllByTransferenciaId(it.id!!)
-
-                        if (nonNull(devolucoesRegistradas) && devolucoesRegistradas.isEmpty()) {
-                            logger.info(
-                                "STEP ${step}: SALVANDO DEVOLUCAO DA TRANSFERENCIA " +
-                                        "${it.id!!} DO LOTE ${loteAtualizado.id!!}"
-                            )
-
-                            if (nonNull(dbTransferenciaDevolucao) || dbTransferenciaDevolucao!!.isNotEmpty()) {
-                                bBDevolucaoTransferenciaEntityRepository.saveAll(dbTransferenciaDevolucao!!)
-                            }
-                        }
                     } else {
                         logger.error(
                             "STEP ${step}: TRANSFERENCIA ${it.id!!} DO LOTE ${loteAtualizado.id!!} NÃO ENCONTRADA"
@@ -112,6 +81,53 @@ class ConsultarLoteService(
             }
         } else {
             logger.error("STEP ${step}: LOTE ${lote.id!!} NÃO ENCONTRADO")
+        }
+    }
+
+    fun processaTransferencia(
+        step: Int,
+        transferencia: BBTransferenciaEntity,
+        lote: BigInteger,
+        bbTransferencia: BBConsultaTransferenciaResponseDto
+    ) {
+        logger.info(
+            "STEP ${step}: TRANSFERENCIA ${transferencia.id!!} DO LOTE $lote CONSULTADA COM SUCESSO"
+        )
+
+        val estadoPagamento = bBEstadoTransferenciaEntityRepository
+            .findByEstadoPagamentoIgnoreCase(bbTransferencia.estadoPagamento!!)
+
+        val transferenciaDbAtualizada = transferencia.atualizarTransferenciaComConsulta(
+            bbTransferencia = bbTransferencia,
+            estadoPagamento = estadoPagamento
+        )
+        logger.info(
+            "STEP ${step}: TRANSFERENCIA ${transferencia.id!!} DO LOTE $lote ATUALIZADA COM SUCESSO"
+        )
+
+        bbTransferenciasRepository.save(transferenciaDbAtualizada)
+
+        val dbTransferenciaDevolucao = bbTransferencia.listaDevolucao?.map { devolucao ->
+            BBDevolucaoTransferenciaEntity(
+                id = null,
+                transferenciaId = transferencia.id!!,
+                codigoMotivo = devolucao.codigoMotivo,
+                dataDevolucao = LocalDateTime.now(),
+                valorDevolucao = devolucao.valorDevolucao,
+            )
+        }
+
+        val devolucoesRegistradas =
+            bBDevolucaoTransferenciaEntityRepository.findAllByTransferenciaId(transferencia.id!!)
+
+        if (nonNull(devolucoesRegistradas) && devolucoesRegistradas.isEmpty()) {
+            logger.info(
+                "STEP ${step}: SALVANDO DEVOLUCAO DA TRANSFERENCIA ${transferencia.id!!} DO LOTE $lote"
+            )
+
+            if (nonNull(dbTransferenciaDevolucao) || dbTransferenciaDevolucao!!.isNotEmpty()) {
+                bBDevolucaoTransferenciaEntityRepository.saveAll(dbTransferenciaDevolucao!!)
+            }
         }
     }
 }

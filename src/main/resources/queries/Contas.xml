@@ -8,4 +8,12 @@
             from		[COPPETEC].[bancoDoBrasil].[getContaAConsultar]	()
         ]]>
     </entry>
+
+    <entry key="[COPPETEC].[bancoDoBrasil_remessa].[getRemessaEletronica_atualizacoesTED]">
+        <![CDATA[
+            select		*
+            from		[COPPETEC].[bancoDoBrasil_remessa].[getRemessaEletronica_atualizacoesTED] ()
+        ]]>
+    </entry>
+
 </properties>

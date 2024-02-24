@@ -12,7 +12,8 @@ interface BBPort {
     fun liberarLote(body: BBLiberacaoLoteRequest, token: String): ResponseEntity<BBLiberacaoLoteResponse>
     fun consultarLote(idLote: BigInteger, accessToken: String): ResponseEntity<BBConsultaLoteResponseDto>?
     fun consultarTransferencia(
-        identificadorTransferencia: BigInteger, accessToken: String
+        identificadorTransferencia: BigInteger,
+        accessToken: String
     ): BBConsultaTransferenciaResponseDto?
 
     fun transferir(loteDeEnvio: BBTransferirRequest, token: String): ResponseEntity<BBTransferenciaResponseDto>?

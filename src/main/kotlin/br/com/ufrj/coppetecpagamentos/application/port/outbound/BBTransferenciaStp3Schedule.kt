@@ -24,7 +24,6 @@ class BBTransferenciaStp3Schedule(
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
     private var isRunning = false
 
-
     @Scheduled(
         fixedDelay = 5 * 60 * 1000,
         zone = BBTransferenciaStp2Schedule.TIME_ZONE
