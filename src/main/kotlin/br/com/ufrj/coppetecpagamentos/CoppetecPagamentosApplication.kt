@@ -13,5 +13,6 @@ import org.springframework.scheduling.annotation.EnableScheduling
 class CoppetecPagamentosApplication
 
 fun main(args: Array<String>) {
+	System.setProperty("jdk.tls.maxHandshakeMessageSize", "65536")
 	runApplication<CoppetecPagamentosApplication>(*args)
 }

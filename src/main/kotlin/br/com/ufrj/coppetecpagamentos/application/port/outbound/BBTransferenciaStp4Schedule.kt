@@ -63,7 +63,6 @@ class BBTransferenciaStp4Schedule(
                     }
                 }
             }
-
         } finally {
             isRunning = false
         }
