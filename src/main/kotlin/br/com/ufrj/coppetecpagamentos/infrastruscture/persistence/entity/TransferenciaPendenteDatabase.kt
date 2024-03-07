@@ -2,6 +2,7 @@ package br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.entity
 
 import java.math.BigDecimal
 import java.math.BigInteger
+import java.math.RoundingMode
 import java.sql.Timestamp
 import java.time.LocalDate
 import java.util.Objects.isNull
@@ -56,7 +57,7 @@ data class TransferenciaPendenteDatabase(
                         beneficiarioCPF = (it[13] as String?),
                         beneficiarioCNPJ = (it[14] as String?),
                         transferenciaData = ((it[15] as Timestamp?)?.toLocalDateTime()?.toLocalDate())!!,
-                        transferenciaValor = (it[16] as BigDecimal?),
+                            transferenciaValor = (it[16] as BigDecimal?)?.setScale(2,  RoundingMode.HALF_UP ),
                         documentoDebito = (it[17] as BigInteger?),
                         documentoCredito = (it[18] as BigInteger?),
                         codigoFinalidadeDOC = (it[19] as String?),

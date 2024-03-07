@@ -18,7 +18,7 @@ rest-template:
   connectionTimeout: 10000
   password: 112023
   protocol: TLS
-  maxRetry: 999999
+  maxRetry: 10
   retryInterval: 5
   keyStoreInstance: PKCS12
   classPath: classpath:COPPETEC2024.pfx
