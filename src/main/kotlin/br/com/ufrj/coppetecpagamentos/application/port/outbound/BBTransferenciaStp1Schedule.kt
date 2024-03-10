@@ -5,6 +5,7 @@ import br.com.ufrj.coppetecpagamentos.domain.property.ScheduleProperties
 import br.com.ufrj.coppetecpagamentos.domain.service.EnviarLoteService
 import br.com.ufrj.coppetecpagamentos.domain.singleton.ProcessType.PAYMENT_SENDING_PROCESS
 import br.com.ufrj.coppetecpagamentos.domain.singleton.SchedulerExecutionTracker
+import br.com.ufrj.coppetecpagamentos.domain.singleton.TransferLog
 import br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.entity.TransferenciaPendenteDatabase
 import br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.port.EnvioPendentePort
 import br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.port.TogglePort
@@ -38,7 +39,7 @@ class BBTransferenciaStp1Schedule(
 
         try {
             isRunning = true
-            val active = properties.schedule && togglePort.isEnabled(BB_TRANSFERENCIA_STP1_SCHEDULE)
+            val active = true// properties.schedule && togglePort.isEnabled(BB_TRANSFERENCIA_STP1_SCHEDULE)
 
             if (active) {
                 try {
@@ -48,13 +49,29 @@ class BBTransferenciaStp1Schedule(
 
                     logger.info("STEP 1: TOTAL DE TRANSFERÊNCIAS PENDENTES DE ENVIO {} ", remessas.size)
 
-                    remessas.forEach {
+                    SchedulerExecutionTracker.getInstance().addLogTransfer(PAYMENT_SENDING_PROCESS, TransferLog(
+                            message = "STEP 1: TOTAL DE TRANSFERÊNCIAS PENDENTES DE ENVIO ${remessas.size}",
+                    ))
+
+                    remessas.forEachIndexed { index, it ->
+
+                        SchedulerExecutionTracker.getInstance().addLogTransfer(PAYMENT_SENDING_PROCESS, TransferLog(
+                                message = "STEP 1: PROCESSANDO REMESSA ${index + 1} DE ${remessas.size}",
+                        ))
 
                         val transferencias = envioPendentePort.getTransferenciasPendente(
                                 contaFonte = it.contaOrigem!!, tipoPagamento = it.tipoPagamento!!
                         )
 
+                        SchedulerExecutionTracker.getInstance().addLogTransfer(PAYMENT_SENDING_PROCESS, TransferLog(
+                                message = "STEP 1: REMESSA ${index + 1} DE ${remessas.size} - TOTAL DE TRANSFERÊNCIAS ${transferencias.size}"
+                        ))
+
                         val parts: List<List<TransferenciaPendenteDatabase>> = transferencias.chunked(parts)
+
+                        SchedulerExecutionTracker.getInstance().addLogTransfer(PAYMENT_SENDING_PROCESS, TransferLog(
+                                message = "STEP 1: REMESSA ${index + 1} DE ${remessas.size} - GERADO ${parts.size} PARTES DE TRANSFERÊNCIA"
+                        ))
 
                         logger.info(
                                 "NUMERO DE TRANSFERENCIAS: {} - GERADO {} PARTES DE TRANSFERENCIA",
@@ -62,7 +79,12 @@ class BBTransferenciaStp1Schedule(
                                 parts.size
                         )
 
-                        parts.forEach { part ->
+                        parts.forEachIndexed { indexPart, part ->
+
+                            SchedulerExecutionTracker.getInstance().addLogTransfer(PAYMENT_SENDING_PROCESS, TransferLog(
+                                    message = "STEP 1: REMESSA ${index + 1} DE ${remessas.size} - PROCESSANDO PARTE ${indexPart + 1} DE ${parts.size}"
+                            ))
+
                             enviarLoteService.executar(it, part)
                         }
                     }

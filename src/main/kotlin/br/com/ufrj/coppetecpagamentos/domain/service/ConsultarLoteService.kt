@@ -19,11 +19,11 @@ import java.util.Objects.nonNull
 
 @Service
 class ConsultarLoteService(
-    private val bbPort: BBPort,
-    private val bBLoteRepository: BBLoteRepository,
-    private val bbTransferenciasRepository: BBTransferenciaEntityRepository,
-    private val bBEstadoTransferenciaEntityRepository: BBEstadoTransferenciaEntityRepository,
-    private val bBDevolucaoTransferenciaEntityRepository: BBDevolucaoTransferenciaEntityRepository,
+        private val bbPort: BBPort,
+        private val bBLoteRepository: BBLoteRepository,
+        private val bbTransferenciasRepository: BBTransferenciaEntityRepository,
+        private val bBEstadoTransferenciaEntityRepository: BBEstadoTransferenciaEntityRepository,
+        private val bBDevolucaoTransferenciaEntityRepository: BBDevolucaoTransferenciaEntityRepository,
 ) {
 
     private val logger: Logger = LoggerFactory.getLogger(ConsultarLoteService::class.java)
@@ -35,13 +35,13 @@ class ConsultarLoteService(
         val token = bbPort.autenticar(api = API.TRANSFERENCIA).body!!.accessToken
 
         val loteConsultado = bbPort.consultarLote(
-            idLote = lote.id!!,
-            accessToken = token
+                idLote = lote.id!!,
+                accessToken = token
         )?.body
 
         if (loteConsultado != null) {
             val loteAtualizado = bBLoteRepository.save(
-                lote.atualizarBBLoteEntityComConsulta(loteConsultado)
+                    lote.atualizarBBLoteEntityComConsulta(loteConsultado)
             )
 
             logger.info("STEP ${step}: LOTE ATUALIZADO COM CONSULTA {}", loteAtualizado.toString())
@@ -56,26 +56,26 @@ class ConsultarLoteService(
                     val tokenTransferencia = bbPort.autenticar().body!!.accessToken
 
                     val bbTransferencia = bbPort.consultarTransferencia(
-                        identificadorTransferencia = it.identificadorTransferencia!!,
-                        accessToken = tokenTransferencia
+                            identificadorTransferencia = it.identificadorTransferencia!!,
+                            accessToken = tokenTransferencia
                     )
 
                     if (bbTransferencia != null) {
                         processaTransferencia(
-                            step = step,
-                            transferencia = it,
-                            lote = loteAtualizado.id!!,
-                            bbTransferencia = bbTransferencia
+                                step = step,
+                                transferencia = it,
+                                lote = loteAtualizado.id!!,
+                                bbTransferencia = bbTransferencia
                         )
                     } else {
                         logger.error(
-                            "STEP ${step}: TRANSFERENCIA ${it.id!!} DO LOTE ${loteAtualizado.id!!} NÃO ENCONTRADA"
+                                "STEP ${step}: TRANSFERENCIA ${it.id!!} DO LOTE ${loteAtualizado.id!!} NÃO ENCONTRADA"
                         )
                     }
                 } else {
                     logger.error(
-                        "STEP ${step}: TRANSFERENCIA ${it.id!!} " +
-                                "DO LOTE ${loteAtualizado.id!!} NÃO POSSUI IDENTIFICADOR DE TRANSFERENCIA"
+                            "STEP ${step}: TRANSFERENCIA ${it.id!!} " +
+                                    "DO LOTE ${loteAtualizado.id!!} NÃO POSSUI IDENTIFICADOR DE TRANSFERENCIA"
                     )
                 }
             }
@@ -85,44 +85,47 @@ class ConsultarLoteService(
     }
 
     fun processaTransferencia(
-        step: Int,
-        transferencia: BBTransferenciaEntity,
-        lote: BigInteger,
-        bbTransferencia: BBConsultaTransferenciaResponseDto
+            step: Int,
+            transferencia: BBTransferenciaEntity,
+            lote: BigInteger,
+            bbTransferencia: BBConsultaTransferenciaResponseDto
     ) {
         logger.info(
-            "STEP ${step}: TRANSFERENCIA ${transferencia.id!!} DO LOTE $lote CONSULTADA COM SUCESSO"
+                "STEP ${step}: TRANSFERENCIA ${transferencia.id!!} DO LOTE $lote CONSULTADA COM SUCESSO"
         )
 
+        logger.info(
+                "STEP ${step}: CONSULTANDO ESTADO PAGAMENTO ${bbTransferencia.estadoPagamento} DA TRANSFERENCIA ${transferencia.id!!} DO LOTE $lote"
+        )
         val estadoPagamento = bBEstadoTransferenciaEntityRepository
-            .findByEstadoPagamentoIgnoreCase(bbTransferencia.estadoPagamento!!)
+                .findByEstadoPagamentoIgnoreCase(bbTransferencia.estadoPagamento!!)
 
         val transferenciaDbAtualizada = transferencia.atualizarTransferenciaComConsulta(
-            bbTransferencia = bbTransferencia,
-            estadoPagamento = estadoPagamento
+                bbTransferencia = bbTransferencia,
+                estadoPagamento = estadoPagamento
         )
         logger.info(
-            "STEP ${step}: TRANSFERENCIA ${transferencia.id!!} DO LOTE $lote ATUALIZADA COM SUCESSO"
+                "STEP ${step}: TRANSFERENCIA ${transferencia.id!!} DO LOTE $lote ATUALIZADA COM SUCESSO"
         )
 
         bbTransferenciasRepository.save(transferenciaDbAtualizada)
 
         val dbTransferenciaDevolucao = bbTransferencia.listaDevolucao?.map { devolucao ->
             BBDevolucaoTransferenciaEntity(
-                id = null,
-                transferenciaId = transferencia.id!!,
-                codigoMotivo = devolucao.codigoMotivo,
-                dataDevolucao = LocalDateTime.now(),
-                valorDevolucao = devolucao.valorDevolucao,
+                    id = null,
+                    transferenciaId = transferencia.id!!,
+                    codigoMotivo = devolucao.codigoMotivo,
+                    dataDevolucao = LocalDateTime.now(),
+                    valorDevolucao = devolucao.valorDevolucao,
             )
         }
 
         val devolucoesRegistradas =
-            bBDevolucaoTransferenciaEntityRepository.findAllByTransferenciaId(transferencia.id!!)
+                bBDevolucaoTransferenciaEntityRepository.findAllByTransferenciaId(transferencia.id!!)
 
         if (nonNull(devolucoesRegistradas) && devolucoesRegistradas.isEmpty()) {
             logger.info(
-                "STEP ${step}: SALVANDO DEVOLUCAO DA TRANSFERENCIA ${transferencia.id!!} DO LOTE $lote"
+                    "STEP ${step}: SALVANDO DEVOLUCAO DA TRANSFERENCIA ${transferencia.id!!} DO LOTE $lote"
             )
 
             if (nonNull(dbTransferenciaDevolucao) || dbTransferenciaDevolucao!!.isNotEmpty()) {

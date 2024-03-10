@@ -2,6 +2,8 @@ package br.com.ufrj.coppetecpagamentos.domain.singleton
 
 import org.springframework.stereotype.Component
 import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeFormatter.ISO_DATE_TIME
 
 @Component
 class SchedulerExecutionTracker private constructor() {
@@ -22,8 +24,17 @@ class SchedulerExecutionTracker private constructor() {
             trimExecutionRecords(records)
         }
         val record = ExecutionRecord(processType)
-        record.startTime = LocalDateTime.now()
+        record.startTime = LocalDateTime.now().format(ISO_DATE_TIME)
         records.add(record)
+    }
+
+    fun addLogTransfer(processType: ProcessType, log: TransferLog) {
+        log.processType = processType
+        val records = executionRecordsMap[processType] ?: return
+        val index = records.indexOfLast { it.processType == processType }
+        if (index != -1) {
+            records[index].transferLogs.add(log)
+        }
     }
 
     private fun trimExecutionRecords(records: MutableList<ExecutionRecord>) {
@@ -37,7 +48,7 @@ class SchedulerExecutionTracker private constructor() {
         val records = executionRecordsMap[processType] ?: return
         val index = records.indexOfLast { it.processType == processType }
         if (index != -1) {
-            records[index].endTime = LocalDateTime.now()
+            records[index].endTime = LocalDateTime.now().format(ISO_DATE_TIME)
         }
     }
 
@@ -56,6 +67,10 @@ class SchedulerExecutionTracker private constructor() {
         return processStatusMap
     }
 
+    fun getLogProcess(valueOf: ProcessType): List<ExecutionRecord> {
+        return executionRecordsMap[valueOf] ?: emptyList()
+    }
+
     companion object {
         @Volatile
         private var instance: SchedulerExecutionTracker? = null
@@ -69,9 +84,16 @@ class SchedulerExecutionTracker private constructor() {
 }
 
 data class ExecutionRecord(
-    var processType: ProcessType,
-    var startTime: LocalDateTime? = null,
-    var endTime: LocalDateTime? = null
+        var processType: ProcessType,
+        var startTime: String = LocalDateTime.now().format(ISO_DATE_TIME),
+        var endTime: String? = null,
+        val transferLogs: MutableList<TransferLog> = mutableListOf(),
+)
+
+data class TransferLog(
+        val message: String,
+        val timestamp: String = LocalDateTime.now().format(ISO_DATE_TIME),
+        var processType: ProcessType? = null
 )
 
 enum class ProcessType {
