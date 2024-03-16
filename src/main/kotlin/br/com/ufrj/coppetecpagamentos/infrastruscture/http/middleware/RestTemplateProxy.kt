@@ -28,15 +28,15 @@ import java.util.function.Supplier
 @Suppress("UNCHECKED_CAST")
 @Component
 class RestTemplateProxy(
-        private val restTemplateProperties: RestTemplateProperties,
-        private val bBLoteLogRepository: BBLoteLogRepository,
-        private val meterRegistry: MeterRegistry
+    private val restTemplateProperties: RestTemplateProperties,
+    private val bBLoteLogRepository: BBLoteLogRepository,
+    private val meterRegistry: MeterRegistry
 ) {
 
     private val logger = LoggerFactory.getLogger(RestTemplateProxy::class.java)
     private val gson = GsonBuilder()
-            .registerTypeAdapter(LocalDateTime::class.java, LocalDateTimeAdapter())
-            .create()
+        .registerTypeAdapter(LocalDateTime::class.java, LocalDateTimeAdapter())
+        .create()
 
     fun <Y> execute(consumer: Supplier<Y>, httpUri: HttpUri): Y? {
         var retryCount = 0
@@ -45,10 +45,10 @@ class RestTemplateProxy(
                 val success = consumer.get()
 
                 Counter
-                        .builder("http_${httpUri.name}_request_success_total")
-                        .tags("http_status", "200")
-                        .description("Total number of successful HTTP requests")
-                        .register(meterRegistry).increment()
+                    .builder("http_${httpUri.name}_request_success_total")
+                    .tags("http_status", "200")
+                    .description("Total number of successful HTTP requests")
+                    .register(meterRegistry).increment()
 
                 return success
             } catch (e: Exception) {
@@ -64,10 +64,10 @@ class RestTemplateProxy(
                     }
 
                     Counter
-                            .builder("http_${httpUri.name}_request_retry_total")
-                            .tags("http_status", httpCode.toString())
-                            .description("Total number of retried HTTP requests")
-                            .register(meterRegistry)
+                        .builder("http_${httpUri.name}_request_retry_total")
+                        .tags("http_status", httpCode.toString())
+                        .description("Total number of retried HTTP requests")
+                        .register(meterRegistry)
 
                     // fix para o caso de erro 500 na consulta de transferencia
                     if (httpCode == 500 && httpUri.name == HttpUri.CONSULTAR_TRANSFERENCIA.name) {
@@ -75,13 +75,13 @@ class RestTemplateProxy(
                     }
 
                     logRetryWarning(
-                            e = e,
-                            retryAttempt = retryCount + 1,
-                            sleepInSeconds = restTemplateProperties.retryInterval
+                        e = e,
+                        retryAttempt = retryCount + 1,
+                        sleepInSeconds = restTemplateProperties.retryInterval
                     )
 
                     sleepInSeconds(
-                            seconds = restTemplateProperties.retryInterval
+                        seconds = restTemplateProperties.retryInterval
                     )
 
                     retryCount++
@@ -89,17 +89,17 @@ class RestTemplateProxy(
                     when {
                         isBadRequest(e) -> {
                             Counter.builder("http_${httpUri.name}_request_error_total")
-                                    .tags("http_status", "400")
-                                    .description("Total number of HTTP requests with errors")
-                                    .register(meterRegistry)
+                                .tags("http_status", "400")
+                                .description("Total number of HTTP requests with errors")
+                                .register(meterRegistry)
                             return null
                         }
 
                         isServerError(e) -> {
                             Counter.builder("http_${httpUri.name}_request_error_total")
-                                    .tags("http_status", "500")
-                                    .description("Total number of HTTP requests with errors")
-                                    .register(meterRegistry)
+                                .tags("http_status", "500")
+                                .description("Total number of HTTP requests with errors")
+                                .register(meterRegistry)
 
                             return null
                         }
@@ -117,27 +117,20 @@ class RestTemplateProxy(
 
         while (true) {
             try {
-                SchedulerExecutionTracker.getInstance().addLogTransfer(ProcessType.PAYMENT_SENDING_PROCESS, TransferLog(
-                        message = "STEP 1: ENVIANDO LOTE $loteId")
-                )
 
                 val response = consumer.get() as ResponseEntity<BBTransferenciaResponseDto>
-
-                SchedulerExecutionTracker.getInstance().addLogTransfer(ProcessType.PAYMENT_SENDING_PROCESS, TransferLog(
-                        message = "STEP 1: LOTE $loteId ENVIADO COM SUCESSO")
-                )
 
                 val responseJson = gson.toJson(response)
 
                 bBLoteLogRepository.save(
-                        BBLoteLogEntity(
-                                lote = loteId,
-                                httpCodigo = response.statusCode.value(),
-                                codigoErro = null,
-                                mensagemErro = null,
-                                ocorrencia = null,
-                                payload = responseJson
-                        )
+                    BBLoteLogEntity(
+                        lote = loteId,
+                        httpCodigo = response.statusCode.value(),
+                        codigoErro = null,
+                        mensagemErro = null,
+                        ocorrencia = null,
+                        payload = responseJson
+                    )
                 )
 
                 return response as Y
@@ -149,50 +142,35 @@ class RestTemplateProxy(
                 val respostaErro = gson.fromJson(erroJson, BBLiberarLoteErroResponseDto::class.java)
 
                 bBLoteLogRepository.saveAll(
-                        respostaErro
-                                .erros.map { erro ->
-                                    BBLoteLogEntity(
-                                            lote = loteId,
-                                            httpCodigo = httpStatusCode,
-                                            codigoErro = erro?.codigo,
-                                            mensagemErro = erro?.mensagem,
-                                            ocorrencia = erro?.ocorrencia,
-                                            payload = erroJson
-                                    )
-                                }
-                )
-
-                SchedulerExecutionTracker.getInstance().addLogTransfer(ProcessType.PAYMENT_SENDING_PROCESS, TransferLog(
-                        message = "STEP 1: LOTE ${loteId} NÃO FOI ENVIADO: CODIGO ${httpStatusCode} - ERRO ${respostaErro.erros[0]?.mensagem}")
+                    respostaErro
+                        .erros.map { erro ->
+                            BBLoteLogEntity(
+                                lote = loteId,
+                                httpCodigo = httpStatusCode,
+                                codigoErro = erro?.codigo,
+                                mensagemErro = erro?.mensagem,
+                                ocorrencia = erro?.ocorrencia,
+                                payload = erroJson
+                            )
+                        }
                 )
 
                 return null
             } catch (e: Exception) {
 
-                SchedulerExecutionTracker.getInstance().addLogTransfer(ProcessType.PAYMENT_SENDING_PROCESS, TransferLog(
-                        message = "STEP 1: LOTE ${loteId} NÃO FOI ENVIADO: ERRO ${e.message}")
-                )
-
                 if (retryCount < restTemplateProperties.maxRetry) {
 
-                    SchedulerExecutionTracker.getInstance().addLogTransfer(ProcessType.PAYMENT_SENDING_PROCESS, TransferLog(
-                            message = "STEP 1: TENTATIVA DE REENVIO ${retryCount + 1} DE ${restTemplateProperties.maxRetry}")
-                    )
-
                     logRetryWarning(
-                            e = e,
-                            retryAttempt = retryCount + 1,
-                            sleepInSeconds = restTemplateProperties.retryInterval
+                        e = e,
+                        retryAttempt = retryCount + 1,
+                        sleepInSeconds = restTemplateProperties.retryInterval
                     )
                     sleepInSeconds(
-                            seconds = restTemplateProperties.retryInterval
+                        seconds = restTemplateProperties.retryInterval
                     )
 
                     retryCount++
                 } else {
-                    SchedulerExecutionTracker.getInstance().addLogTransfer(ProcessType.PAYMENT_SENDING_PROCESS, TransferLog(
-                            message = "STEP 1: LOTE ${loteId} NÃO FOI ENVIADO: ERRO ${e.message} - LIMITE DE TENTATIVAS ALCANÇADO")
-                    )
                     return null
                 }
             }
@@ -202,14 +180,14 @@ class RestTemplateProxy(
     fun registrarRequest(loteId: BigInteger, payload: Any) {
         val json = gson.toJson(payload)
         bBLoteLogRepository.save(
-                BBLoteLogEntity(
-                        lote = loteId,
-                        httpCodigo = null,
-                        codigoErro = null,
-                        mensagemErro = null,
-                        ocorrencia = null,
-                        payload = json
-                )
+            BBLoteLogEntity(
+                lote = loteId,
+                httpCodigo = null,
+                codigoErro = null,
+                mensagemErro = null,
+                ocorrencia = null,
+                payload = json
+            )
         )
     }
 
@@ -227,10 +205,10 @@ class RestTemplateProxy(
 
     private fun logRetryWarning(e: java.lang.Exception, retryAttempt: Int, sleepInSeconds: Int) {
         logger.warn(
-                "PROXY --> Tentativa de reexecução {} após atraso de {} segundos. Erro: {}",
-                retryAttempt,
-                sleepInSeconds,
-                getErrorMessage(e)
+            "PROXY --> Tentativa de reexecução {} após atraso de {} segundos. Erro: {}",
+            retryAttempt,
+            sleepInSeconds,
+            getErrorMessage(e)
         )
     }
 

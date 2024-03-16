@@ -49,29 +49,14 @@ class BBTransferenciaStp1Schedule(
 
                     logger.info("STEP 1: TOTAL DE TRANSFERÊNCIAS PENDENTES DE ENVIO {} ", remessas.size)
 
-                    SchedulerExecutionTracker.getInstance().addLogTransfer(PAYMENT_SENDING_PROCESS, TransferLog(
-                            message = "STEP 1: TOTAL DE TRANSFERÊNCIAS PENDENTES DE ENVIO ${remessas.size}",
-                    ))
 
                     remessas.forEachIndexed { index, it ->
-
-                        SchedulerExecutionTracker.getInstance().addLogTransfer(PAYMENT_SENDING_PROCESS, TransferLog(
-                                message = "STEP 1: PROCESSANDO REMESSA ${index + 1} DE ${remessas.size}",
-                        ))
 
                         val transferencias = envioPendentePort.getTransferenciasPendente(
                                 contaFonte = it.contaOrigem!!, tipoPagamento = it.tipoPagamento!!
                         )
 
-                        SchedulerExecutionTracker.getInstance().addLogTransfer(PAYMENT_SENDING_PROCESS, TransferLog(
-                                message = "STEP 1: REMESSA ${index + 1} DE ${remessas.size} - TOTAL DE TRANSFERÊNCIAS ${transferencias.size}"
-                        ))
-
                         val parts: List<List<TransferenciaPendenteDatabase>> = transferencias.chunked(parts)
-
-                        SchedulerExecutionTracker.getInstance().addLogTransfer(PAYMENT_SENDING_PROCESS, TransferLog(
-                                message = "STEP 1: REMESSA ${index + 1} DE ${remessas.size} - GERADO ${parts.size} PARTES DE TRANSFERÊNCIA"
-                        ))
 
                         logger.info(
                                 "NUMERO DE TRANSFERENCIAS: {} - GERADO {} PARTES DE TRANSFERENCIA",
@@ -80,10 +65,6 @@ class BBTransferenciaStp1Schedule(
                         )
 
                         parts.forEachIndexed { indexPart, part ->
-
-                            SchedulerExecutionTracker.getInstance().addLogTransfer(PAYMENT_SENDING_PROCESS, TransferLog(
-                                    message = "STEP 1: REMESSA ${index + 1} DE ${remessas.size} - PROCESSANDO PARTE ${indexPart + 1} DE ${parts.size}"
-                            ))
 
                             enviarLoteService.executar(it, part)
                         }

@@ -37,25 +37,12 @@ class EnviarLoteService(
                 )
         )
 
-        SchedulerExecutionTracker.getInstance().addLogTransfer(ProcessType.PAYMENT_SENDING_PROCESS, TransferLog(
-                message = "STEP 1: LOTE CRIADO COM ID ${lote.id!!}"
-        ))
-
 
         val loteDeEnvio = BBTransferirRequest.mapLoteRequest(loteEnvioPendenteDatabase, lote)
-
-        SchedulerExecutionTracker.getInstance().addLogTransfer(ProcessType.PAYMENT_SENDING_PROCESS, TransferLog(
-                message = "STEP 1: LOTE ${lote.id} PREPARADO PARA ENVIO $loteDeEnvio"
-        ))
-
 
         val dbTransferencias: MutableList<BBTransferenciaEntity> = mutableListOf()
 
         transferencias.forEachIndexed { indexT, it ->
-
-            SchedulerExecutionTracker.getInstance().addLogTransfer(ProcessType.PAYMENT_SENDING_PROCESS, TransferLog(
-                    message = "STEP 1: GERANDO TRANSFERÊNCIA ${indexT + 1} DE ${transferencias.size}"
-            ))
 
             val dbTransferencia = bBTransferenciaEntityRepository.save(
                     BBTransferenciaEntity.criarRegistroTransferencia(
@@ -72,15 +59,9 @@ class EnviarLoteService(
         }
 
         logger.info("STEP 1: LOTE PREPARADO PARA ENVIO {}", loteDeEnvio)
-        SchedulerExecutionTracker.getInstance().addLogTransfer(ProcessType.PAYMENT_SENDING_PROCESS, TransferLog(
-                message = "STEP 1: LOTE ${lote.id} PREPARADO PARA ENVIO $loteDeEnvio"
-        ))
 
         val token = bbPort.autenticar().body?.accessToken
         logger.info("STEP 1: TOKEN DE ACESSO {}", token)
-        SchedulerExecutionTracker.getInstance().addLogTransfer(ProcessType.PAYMENT_SENDING_PROCESS, TransferLog(
-                message = "STEP 1: TOKEN DE AUTENTICAO GERADO")
-        )
 
         val response = bbPort.transferir(loteDeEnvio, token!!)
 
@@ -88,9 +69,6 @@ class EnviarLoteService(
             val body = response!!.body!!
 
             bBLoteRepository.save(lote.atualizarBBLoteEntityComResposta(body))
-            SchedulerExecutionTracker.getInstance().addLogTransfer(ProcessType.PAYMENT_SENDING_PROCESS, TransferLog(
-                    message = "STEP 1: LOTE ${lote.id} ATUALIZADO COM RESPOSTA DO BANCO DO BRASIL")
-            )
 
             body.transferencias.forEach { transferenciaBB ->
                 val dbTransferencia = bBTransferenciaEntityRepository
@@ -117,9 +95,6 @@ class EnviarLoteService(
             }
         } else {
             logger.error("STEP 1: TIVEMOS UM ERRO AO ENVIAR O LOTE ${lote.id!!}")
-            SchedulerExecutionTracker.getInstance().addLogTransfer(ProcessType.PAYMENT_SENDING_PROCESS, TransferLog(
-                    message = "STEP 1: TIVEMOS UM ERRO AO ENVIAR O LOTE ${lote.id!!}")
-            )
         }
     }
 }
