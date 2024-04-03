@@ -1,5 +1,6 @@
 package br.com.ufrj.coppetecpagamentos.application.port.inbound.bb
 
+import br.com.ufrj.coppetecpagamentos.infrastruscture.client.LogClient
 import br.com.ufrj.coppetecpagamentos.infrastruscture.http.dto.response.BBConsultaLoteResponseDto
 import br.com.ufrj.coppetecpagamentos.infrastruscture.http.port.BBPort
 import org.springframework.http.ResponseEntity
@@ -12,12 +13,14 @@ import java.math.BigInteger
 @RestController
 @RequestMapping("/bb/lote")
 class ConsultaLoteBBController(
-    private val bbPort: BBPort
+        private val bbPort: BBPort,
+        private val logClient: LogClient,
 ) {
     @GetMapping("/{idLote}")
     fun get(@PathVariable idLote: BigInteger): ResponseEntity<BBConsultaLoteResponseDto> {
-        val token = bbPort.autenticar()
-        val response = bbPort.consultarLote(idLote, requireNotNull(token.body?.accessToken))
+        val id = logClient.getHeader().body!!.id
+        val token = bbPort.autenticar(header = id)
+        val response = bbPort.consultarLote(idLote, requireNotNull(token.body?.accessToken), id)
         return ResponseEntity.ok(response?.body)
     }
 }

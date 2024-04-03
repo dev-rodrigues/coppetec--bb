@@ -1,11 +1,13 @@
 package br.com.ufrj.coppetecpagamentos.application.port.outbound
 
+import br.com.ufrj.coppetecpagamentos.domain.model.LogHeaderDto
 import br.com.ufrj.coppetecpagamentos.domain.property.ScheduleProperties
 import br.com.ufrj.coppetecpagamentos.domain.service.ExtratoService
 import br.com.ufrj.coppetecpagamentos.domain.singleton.ProcessType
 import br.com.ufrj.coppetecpagamentos.domain.singleton.SchedulerExecutionTracker
 import br.com.ufrj.coppetecpagamentos.fixture.getBBConsultaExtratoResponseDto
 import br.com.ufrj.coppetecpagamentos.fixture.getBBContasAtivas
+import br.com.ufrj.coppetecpagamentos.infrastruscture.client.LogClient
 import br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.BBContasAtivasRepository
 import br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.port.TogglePort
 import io.micrometer.core.instrument.MeterRegistry
@@ -16,6 +18,9 @@ import io.mockk.mockk
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import io.mockk.verify
+import org.springframework.http.ResponseEntity
+import java.math.BigInteger
+import java.math.BigInteger.ONE
 
 @ExtendWith(MockKExtension::class)
 class BBConsultarExtratoTest {
@@ -26,13 +31,15 @@ class BBConsultarExtratoTest {
     private val togglePort: TogglePort = mockk()
     private val properties: ScheduleProperties = mockk()
     private val executionTracker: SchedulerExecutionTracker = mockk()
+    private val logClient: LogClient = mockk()
 
     private val service = BBConsultarExtrato(
-        bBContasAtivasRepository = bBContasAtivasRepository,
-        extratoService = extratoService,
-        meterRegistry = meterRegistry,
-        togglePort = togglePort,
-        properties = properties,
+            bBContasAtivasRepository = bBContasAtivasRepository,
+            extratoService = extratoService,
+            meterRegistry = meterRegistry,
+            togglePort = togglePort,
+            properties = properties,
+            logClient = logClient
     )
 
     @Test
@@ -41,6 +48,13 @@ class BBConsultarExtratoTest {
         every {
             togglePort.isEnabled(any())
         } returns true
+
+        every {
+            logClient.getHeader()
+        } returns ResponseEntity.ok().body(LogHeaderDto(
+                id = ONE,
+                dataHora = "2021-09-01T00:00:00Z"
+        ))
 
         justRun {
             executionTracker.recordExecutionStart(ProcessType.BANK_STATEMENT_INQUIRY_PROCESS)
@@ -57,7 +71,7 @@ class BBConsultarExtratoTest {
         every {
             bBContasAtivasRepository.getContas()
         } returns listOf(
-            getBBContasAtivas()
+                getBBContasAtivas()
         )
 
         justRun {
@@ -65,22 +79,33 @@ class BBConsultarExtratoTest {
         }
 
         every {
-            extratoService.getExtrato(any(), any(), any(), any())
+            extratoService.getExtrato(any(), any(), any(), any(), ONE)
         } returns getBBConsultaExtratoResponseDto()
 
+        every {
+            logClient.createLog(any())
+        } returns ResponseEntity.ok().body(null)
+
         justRun {
-            extratoService.register(any(), any())
+            extratoService.register(any(), any(), any())
         }
 
-        service.execute()
+        service.getExtrato()
 
         verify(exactly = 1) {
-            extratoService.register(any(), any())
+            extratoService.register(any(), any(), any())
         }
     }
 
     @Test
     fun `should not execute register when extratoService returned null`() {
+        every {
+            logClient.getHeader()
+        } returns ResponseEntity.ok().body(LogHeaderDto(
+                id = ONE,
+                dataHora = "2021-09-01T00:00:00Z"
+        ))
+
         every {
             togglePort.isEnabled(any())
         } returns false
@@ -100,21 +125,25 @@ class BBConsultarExtratoTest {
         every {
             bBContasAtivasRepository.getContas()
         } returns listOf(
-            getBBContasAtivas()
+                getBBContasAtivas()
         )
 
         justRun {
             meterRegistry.counter(any(), any(), any()).increment()
         }
 
+        justRun {
+            logClient.createLog(any())
+        }
+
         every {
-            extratoService.getExtrato(any(), any(), any(), any())
+            extratoService.getExtrato(any(), any(), any(), any(), ONE)
         } returns null
 
-        service.execute()
+        service.getExtrato()
 
         verify(exactly = 0) {
-            extratoService.register(any(), any())
+            extratoService.register(any(), any(), any())
         }
     }
 

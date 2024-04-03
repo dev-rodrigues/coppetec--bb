@@ -1,6 +1,8 @@
 package br.com.ufrj.coppetecpagamentos.domain.service
 
 import br.com.ufrj.coppetecpagamentos.domain.model.API
+import br.com.ufrj.coppetecpagamentos.domain.model.CreateLogRequestDto
+import br.com.ufrj.coppetecpagamentos.infrastruscture.client.LogClient
 import br.com.ufrj.coppetecpagamentos.infrastruscture.http.dto.response.BBConsultaTransferenciaResponseDto
 import br.com.ufrj.coppetecpagamentos.infrastruscture.http.port.BBPort
 import br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.BBDevolucaoTransferenciaEntityRepository
@@ -24,40 +26,121 @@ class ConsultarLoteService(
         private val bbTransferenciasRepository: BBTransferenciaEntityRepository,
         private val bBEstadoTransferenciaEntityRepository: BBEstadoTransferenciaEntityRepository,
         private val bBDevolucaoTransferenciaEntityRepository: BBDevolucaoTransferenciaEntityRepository,
+        private val logClient: LogClient,
 ) {
 
     private val logger: Logger = LoggerFactory.getLogger(ConsultarLoteService::class.java)
 
-    fun executar(lote: BBLoteEntity, step: Int) {
+    fun executar(lote: BBLoteEntity, step: Int, header: BigInteger) {
 
         logger.info("STEP ${step}: CONSULTANDO LOTE {}", lote.id!!)
 
-        val token = bbPort.autenticar(api = API.TRANSFERENCIA).body!!.accessToken
+        logClient.createLog(
+                CreateLogRequestDto(
+                        header = header,
+                        aplicacao = 1,
+                        classe = this::class.java.simpleName,
+                        metodo = "executar",
+                        parametros = "$lote",
+                        usuarioCodigo = null,
+                        usuarioNome = null,
+                        criticalidade = 1,
+                        servico = 1,
+                        mensagemDeErro = "STEP ${step}: CONSULTANDO LOTE ${lote.id!!}"
+                )
+        )
+
+        val token = bbPort.autenticar(
+                api = API.TRANSFERENCIA,
+                header = header
+        ).body!!.accessToken
 
         val loteConsultado = bbPort.consultarLote(
                 idLote = lote.id!!,
-                accessToken = token
+                accessToken = token,
+                header = header
         )?.body
+
+        logClient.createLog(
+                CreateLogRequestDto(
+                        header = header,
+                        aplicacao = 1,
+                        classe = this::class.java.simpleName,
+                        metodo = "executar",
+                        parametros = "$loteConsultado",
+                        usuarioCodigo = null,
+                        usuarioNome = null,
+                        criticalidade = 1,
+                        servico = 1,
+                        mensagemDeErro = "STEP ${step}: LOTE CONSULTADO ${loteConsultado}"
+                )
+        )
 
         if (loteConsultado != null) {
             val loteAtualizado = bBLoteRepository.save(
                     lote.atualizarBBLoteEntityComConsulta(loteConsultado)
             )
 
-            logger.info("STEP ${step}: LOTE ATUALIZADO COM CONSULTA {}", loteAtualizado.toString())
+            logClient.createLog(
+                    CreateLogRequestDto(
+                            header = header,
+                            aplicacao = 1,
+                            classe = this::class.java.simpleName,
+                            metodo = "executar",
+                            parametros = "$loteAtualizado",
+                            usuarioCodigo = null,
+                            usuarioNome = null,
+                            criticalidade = 1,
+                            servico = 1,
+                            mensagemDeErro = "STEP ${step}: LOTE ATUALIZADO COM CONSULTA ${loteAtualizado}"
+                    )
+            )
 
             val transferenciasDoLote = bbTransferenciasRepository.findAllByLote(loteAtualizado.id!!)
+
+            logClient.createLog(
+                    CreateLogRequestDto(
+                            header = header,
+                            aplicacao = 1,
+                            classe = this::class.java.simpleName,
+                            metodo = "executar",
+                            parametros = "$transferenciasDoLote",
+                            usuarioCodigo = null,
+                            usuarioNome = null,
+                            criticalidade = 1,
+                            servico = 1,
+                            mensagemDeErro = "STEP ${step}: TRANSFERENCIAS DO LOTE ${transferenciasDoLote}"
+                    )
+            )
 
             transferenciasDoLote.forEach {
 
                 if (it.identificadorTransferencia != null) {
                     logger.info("STEP ${step}: CONSULTANDO TRANSFERENCIA ${it.id!!} DO LOTE ${loteAtualizado.id!!}")
 
-                    val tokenTransferencia = bbPort.autenticar().body!!.accessToken
+                    val tokenTransferencia = bbPort.autenticar(
+                            header = header,
+                    ).body!!.accessToken
 
                     val bbTransferencia = bbPort.consultarTransferencia(
                             identificadorTransferencia = it.identificadorTransferencia!!,
-                            accessToken = tokenTransferencia
+                            accessToken = tokenTransferencia,
+                            header = header
+                    )
+
+                    logClient.createLog(
+                            CreateLogRequestDto(
+                                    header = header,
+                                    aplicacao = 1,
+                                    classe = this::class.java.simpleName,
+                                    metodo = "executar",
+                                    parametros = "$bbTransferencia",
+                                    usuarioCodigo = null,
+                                    usuarioNome = null,
+                                    criticalidade = 1,
+                                    servico = 1,
+                                    mensagemDeErro = "STEP ${step}: TRANSFERENCIA ${it.id!!} DO LOTE ${loteAtualizado.id!!} CONSULTADA"
+                            )
                     )
 
                     if (bbTransferencia != null) {
@@ -65,17 +148,42 @@ class ConsultarLoteService(
                                 step = step,
                                 transferencia = it,
                                 lote = loteAtualizado.id!!,
-                                bbTransferencia = bbTransferencia
+                                bbTransferencia = bbTransferencia,
+                                header = header
                         )
                     } else {
+                        logClient.createLog(
+                                CreateLogRequestDto(
+                                        header = header,
+                                        aplicacao = 1,
+                                        classe = this::class.java.simpleName,
+                                        metodo = "executar",
+                                        parametros = "$it",
+                                        usuarioCodigo = null,
+                                        usuarioNome = null,
+                                        criticalidade = 2,
+                                        servico = 1,
+                                        mensagemDeErro = "STEP ${step}: TRANSFERENCIA ${it.id!!} DO LOTE ${loteAtualizado.id!!} NÃO POSSUI bbTransferencia"
+                                )
+                        )
                         logger.error(
                                 "STEP ${step}: TRANSFERENCIA ${it.id!!} DO LOTE ${loteAtualizado.id!!} NÃO ENCONTRADA"
                         )
                     }
                 } else {
-                    logger.error(
-                            "STEP ${step}: TRANSFERENCIA ${it.id!!} " +
-                                    "DO LOTE ${loteAtualizado.id!!} NÃO POSSUI IDENTIFICADOR DE TRANSFERENCIA"
+                    logClient.createLog(
+                            CreateLogRequestDto(
+                                    header = header,
+                                    aplicacao = 1,
+                                    classe = this::class.java.simpleName,
+                                    metodo = "executar",
+                                    parametros = "$it",
+                                    usuarioCodigo = null,
+                                    usuarioNome = null,
+                                    criticalidade = 2,
+                                    servico = 1,
+                                    mensagemDeErro = "STEP ${step}: TRANSFERENCIA ${it.id!!} DO LOTE ${loteAtualizado.id!!} NÃO ENCONTRADA"
+                            )
                     )
                 }
             }
@@ -88,15 +196,25 @@ class ConsultarLoteService(
             step: Int,
             transferencia: BBTransferenciaEntity,
             lote: BigInteger,
-            bbTransferencia: BBConsultaTransferenciaResponseDto
+            bbTransferencia: BBConsultaTransferenciaResponseDto,
+            header: BigInteger,
     ) {
-        logger.info(
-                "STEP ${step}: TRANSFERENCIA ${transferencia.id!!} DO LOTE $lote CONSULTADA COM SUCESSO"
+        logClient.createLog(
+                CreateLogRequestDto(
+                        header = header,
+                        aplicacao = 1,
+                        classe = this::class.java.simpleName,
+                        metodo = "processaTransferencia",
+                        parametros = "$transferencia",
+                        usuarioCodigo = null,
+                        usuarioNome = null,
+                        criticalidade = 1,
+                        servico = 1,
+                        mensagemDeErro = "STEP ${step}: TRANSFERENCIA ${transferencia.id!!} DO LOTE $lote CONSULTADA COM SUCESSO - ESTADO PAGAMENTO ${bbTransferencia.estadoPagamento}"
+                )
         )
 
-        logger.info(
-                "STEP ${step}: CONSULTANDO ESTADO PAGAMENTO ${bbTransferencia.estadoPagamento} DA TRANSFERENCIA ${transferencia.id!!} DO LOTE $lote"
-        )
+
         val estadoPagamento = bBEstadoTransferenciaEntityRepository
                 .findByEstadoPagamentoIgnoreCase(bbTransferencia.estadoPagamento!!)
 
@@ -104,11 +222,23 @@ class ConsultarLoteService(
                 bbTransferencia = bbTransferencia,
                 estadoPagamento = estadoPagamento
         )
-        logger.info(
-                "STEP ${step}: TRANSFERENCIA ${transferencia.id!!} DO LOTE $lote ATUALIZADA COM SUCESSO"
-        )
 
         bbTransferenciasRepository.save(transferenciaDbAtualizada)
+
+        logClient.createLog(
+                CreateLogRequestDto(
+                        header = header,
+                        aplicacao = 1,
+                        classe = this::class.java.simpleName,
+                        metodo = "processaTransferencia",
+                        parametros = "$transferenciaDbAtualizada",
+                        usuarioCodigo = null,
+                        usuarioNome = null,
+                        criticalidade = 1,
+                        servico = 1,
+                        mensagemDeErro = "STEP ${step}: TRANSFERENCIA ${transferencia.id!!} DO LOTE $lote ATUALIZADA COM SUCESSO"
+                )
+        )
 
         val dbTransferenciaDevolucao = bbTransferencia.listaDevolucao?.map { devolucao ->
             BBDevolucaoTransferenciaEntity(

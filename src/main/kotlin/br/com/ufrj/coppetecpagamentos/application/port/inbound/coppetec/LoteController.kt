@@ -1,6 +1,7 @@
 package br.com.ufrj.coppetecpagamentos.application.port.inbound.coppetec
 
 import br.com.ufrj.coppetecpagamentos.domain.service.ConsultarLoteService
+import br.com.ufrj.coppetecpagamentos.infrastruscture.client.LogClient
 import br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.BBLoteRepository
 import br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.entity.LogLoteEnviadoEntity
 import br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.entity.LoteEnviadoEntity
@@ -17,9 +18,10 @@ import java.math.BigInteger
 @RestController
 @RequestMapping("/api/lote")
 class LoteController(
-    private val loteRepository: LoteRepository,
-    private val bbLoteRepository: BBLoteRepository,
-    private val consultarLoteService: ConsultarLoteService,
+        private val loteRepository: LoteRepository,
+        private val bbLoteRepository: BBLoteRepository,
+        private val consultarLoteService: ConsultarLoteService,
+        private val logClient: LogClient,
 ) {
 
     @GetMapping
@@ -30,15 +32,20 @@ class LoteController(
 
     @GetMapping("/{loteId}")
     fun getLotById(@PathVariable loteId: BigInteger): ResponseEntity<Void> {
+        val id = logClient.getHeader().body!!.id
         val lote = bbLoteRepository.findById(loteId).get();
-        consultarLoteService.executar(lote, 0)
+        consultarLoteService.executar(
+                lote = lote,
+                step = 1,
+                header = id
+        )
         return ResponseEntity.ok().build()
     }
 
     @GetMapping("/paginated")
     fun getPaginatedLote(
-        @RequestParam("pageNumber", defaultValue = "1") pageNumber: Int,
-        @RequestParam("pageSize", defaultValue = "10") pageSize: Int
+            @RequestParam("pageNumber", defaultValue = "1") pageNumber: Int,
+            @RequestParam("pageSize", defaultValue = "10") pageSize: Int,
     ): ResponseEntity<LoteEnviadoEntityPaginated> {
         val response = loteRepository.findPaginated(pageNumber, pageSize)
         return ResponseEntity.ok(response)

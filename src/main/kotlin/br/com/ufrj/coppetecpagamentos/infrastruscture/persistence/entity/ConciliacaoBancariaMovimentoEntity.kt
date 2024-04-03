@@ -14,7 +14,7 @@ import javax.persistence.Table
 @Table(
     catalog = "COPPETEC",
     schema = "conciliacaoBancaria",
-    name = "movimento_Teste"
+    name = "movimento"
 )
 class ConciliacaoBancariaMovimentoEntity(
     @Id

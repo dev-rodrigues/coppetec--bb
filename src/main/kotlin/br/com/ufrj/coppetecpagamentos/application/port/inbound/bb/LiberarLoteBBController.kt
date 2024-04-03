@@ -19,10 +19,10 @@ class LiberarLoteBBController(
     fun post(
         @RequestBody body: BBLiberacaoLoteRequest
     ): ResponseEntity<BBLiberacaoLoteResponse> {
-        val token = bbPort.autenticar().body!!.accessToken
+//        val token = bbPort.autenticar(header = header).body!!.accessToken
 
-        val response = bbPort.liberarLote(body, token)
+//        val response = bbPort.liberarLote(body, token)
 
-        return ResponseEntity.ok(response.body!!)
+        return ResponseEntity.ok().build()
     }
 }

@@ -1,11 +1,13 @@
 package br.com.ufrj.coppetecpagamentos.infrastruscture.http.middleware
 
 import br.com.ufrj.coppetecpagamentos.domain.adapter.LocalDateTimeAdapter
+import br.com.ufrj.coppetecpagamentos.domain.model.CreateLogRequestDto
 import br.com.ufrj.coppetecpagamentos.domain.model.HttpUri
 import br.com.ufrj.coppetecpagamentos.domain.property.RestTemplateProperties
 import br.com.ufrj.coppetecpagamentos.domain.singleton.ProcessType
 import br.com.ufrj.coppetecpagamentos.domain.singleton.SchedulerExecutionTracker
 import br.com.ufrj.coppetecpagamentos.domain.singleton.TransferLog
+import br.com.ufrj.coppetecpagamentos.infrastruscture.client.LogClient
 import br.com.ufrj.coppetecpagamentos.infrastruscture.http.dto.request.BBTransferirRequest
 import br.com.ufrj.coppetecpagamentos.infrastruscture.http.dto.response.BBLiberarLoteErroResponseDto
 import br.com.ufrj.coppetecpagamentos.infrastruscture.http.dto.response.BBTransferenciaResponseDto
@@ -30,7 +32,7 @@ import java.util.function.Supplier
 class RestTemplateProxy(
         private val restTemplateProperties: RestTemplateProperties,
         private val bBLoteLogRepository: BBLoteLogRepository,
-        private val meterRegistry: MeterRegistry
+        private val logClient: LogClient,
 ) {
 
     private val logger = LoggerFactory.getLogger(RestTemplateProxy::class.java)
@@ -38,22 +40,65 @@ class RestTemplateProxy(
             .registerTypeAdapter(LocalDateTime::class.java, LocalDateTimeAdapter())
             .create()
 
-    fun <Y> execute(consumer: Supplier<Y>, httpUri: HttpUri): Y? {
+    fun <Y> execute(consumer: Supplier<Y>, httpUri: HttpUri, header: BigInteger): Y? {
         var retryCount = 0
         while (true) {
             try {
+
+                logClient.createLog(
+                        CreateLogRequestDto(
+                                header = header,
+                                aplicacao = 4,
+                                classe = this::class.java.simpleName,
+                                metodo = "execute",
+                                parametros = "[${httpUri}]",
+                                usuarioCodigo = null,
+                                usuarioNome = null,
+                                criticalidade = 3,
+                                servico = 1,
+                                mensagemDeErro = "STEP 1: ENVIANDO REQUISIÇÃO PARA ${httpUri.name}",
+                                stackTrace = null
+                        )
+                )
+
                 val success = consumer.get()
 
-                Counter
-                        .builder("http_${httpUri.name}_request_success_total")
-                        .tags("http_status", "200")
-                        .description("Total number of successful HTTP requests")
-                        .register(meterRegistry).increment()
+                logClient.createLog(
+                        CreateLogRequestDto(
+                                header = header,
+                                aplicacao = 4,
+                                classe = this::class.java.simpleName,
+                                metodo = "execute",
+                                parametros = "[${success}]",
+                                usuarioCodigo = null,
+                                usuarioNome = null,
+                                criticalidade = 3,
+                                servico = 1,
+                                mensagemDeErro = "STEP 1: REQUISIÇÃO PARA ${httpUri.name} ENVIADA COM SUCESSO",
+                                stackTrace = null
+                        )
+                )
 
                 return success
+
             } catch (e: Exception) {
                 logger.warn("error $e")
 
+                logClient.createLog(
+                        CreateLogRequestDto(
+                                header = header,
+                                aplicacao = 4,
+                                classe = this::class.java.simpleName,
+                                metodo = "execute",
+                                parametros = "[${httpUri}]",
+                                usuarioCodigo = null,
+                                usuarioNome = null,
+                                criticalidade = 3,
+                                servico = 1,
+                                mensagemDeErro = "STEP 1: ERRO AO ENVIAR REQUISIÇÃO PARA ${httpUri.name}, TENTATIVA ${retryCount + 1} DE ${restTemplateProperties.maxRetry}, ERRO: ${e.message}",
+                                stackTrace = null
+                        )
+                )
 
                 if (isRetryableException(e) && retryCount < restTemplateProperties.maxRetry) {
 
@@ -63,13 +108,6 @@ class RestTemplateProxy(
                         500
                     }
 
-                    Counter
-                            .builder("http_${httpUri.name}_request_retry_total")
-                            .tags("http_status", httpCode.toString())
-                            .description("Total number of retried HTTP requests")
-                            .register(meterRegistry)
-
-                    // fix para o caso de erro 500 na consulta de transferencia
                     if (httpCode == 500 && httpUri.name == HttpUri.CONSULTAR_TRANSFERENCIA.name) {
                         return null
                     }
@@ -88,19 +126,10 @@ class RestTemplateProxy(
                 } else {
                     when {
                         isBadRequest(e) -> {
-                            Counter.builder("http_${httpUri.name}_request_error_total")
-                                    .tags("http_status", "400")
-                                    .description("Total number of HTTP requests with errors")
-                                    .register(meterRegistry)
                             return null
                         }
 
                         isServerError(e) -> {
-                            Counter.builder("http_${httpUri.name}_request_error_total")
-                                    .tags("http_status", "500")
-                                    .description("Total number of HTTP requests with errors")
-                                    .register(meterRegistry)
-
                             return null
                         }
                     }
@@ -109,11 +138,27 @@ class RestTemplateProxy(
         }
     }
 
-    fun <Y> execute(consumer: Supplier<Y>, request: BBTransferirRequest): Y? {
+    fun <Y> execute(consumer: Supplier<Y>, request: BBTransferirRequest, headerBody: BigInteger): Y? {
         var retryCount = 0
         val loteId = request.numeroRequisicao
 
         registrarRequest(loteId, request)
+
+        logClient.createLog(
+                CreateLogRequestDto(
+                        header = headerBody,
+                        aplicacao = 4,
+                        classe = this::class.java.simpleName,
+                        metodo = "execute",
+                        parametros = "[${request}, ${headerBody}]",
+                        usuarioCodigo = null,
+                        usuarioNome = null,
+                        criticalidade = 3,
+                        servico = 1,
+                        mensagemDeErro = "STEP 1: REGISTRANDO REQUEST DO LOTE $loteId",
+                        stackTrace = null
+                )
+        )
 
         while (true) {
             try {
@@ -121,7 +166,39 @@ class RestTemplateProxy(
                         message = "STEP 1: ENVIANDO LOTE $loteId")
                 )
 
+                logClient.createLog(
+                        CreateLogRequestDto(
+                                header = headerBody,
+                                aplicacao = 4,
+                                classe = this::class.java.simpleName,
+                                metodo = "execute",
+                                parametros = "[${request}, ${headerBody}]",
+                                usuarioCodigo = null,
+                                usuarioNome = null,
+                                criticalidade = 3,
+                                servico = 1,
+                                mensagemDeErro = "STEP 1: ENVIANDO LOTE $loteId",
+                                stackTrace = null
+                        )
+                )
+
                 val response = consumer.get() as ResponseEntity<BBTransferenciaResponseDto>
+
+                logClient.createLog(
+                        CreateLogRequestDto(
+                                header = headerBody,
+                                aplicacao = 4,
+                                classe = this::class.java.simpleName,
+                                metodo = "execute",
+                                parametros = "[${response}]",
+                                usuarioCodigo = null,
+                                usuarioNome = null,
+                                criticalidade = 3,
+                                servico = 1,
+                                mensagemDeErro = "STEP 1: LOTE $loteId ENVIADO COM SUCESSO",
+                                stackTrace = null
+                        )
+                )
 
                 SchedulerExecutionTracker.getInstance().addLogTransfer(ProcessType.PAYMENT_SENDING_PROCESS, TransferLog(
                         message = "STEP 1: LOTE $loteId ENVIADO COM SUCESSO")
@@ -145,8 +222,23 @@ class RestTemplateProxy(
             } catch (e: HttpClientErrorException) {
                 val erroJson = e.responseBodyAsString
                 val httpStatusCode = e.statusCode.value()
-
                 val respostaErro = gson.fromJson(erroJson, BBLiberarLoteErroResponseDto::class.java)
+
+
+                logClient.createLog(CreateLogRequestDto(
+                        header = headerBody,
+                        aplicacao = 4,
+                        classe = this::class.java.simpleName,
+                        metodo = "execute",
+                        parametros = "[${respostaErro}]",
+                        usuarioCodigo = null,
+                        usuarioNome = null,
+                        criticalidade = 3,
+                        servico = 1,
+                        mensagemDeErro = "STEP 1: LOTE ${loteId} NÃO FOI ENVIADO: CODIGO ${httpStatusCode} - ERRO ${respostaErro.erros.map { it?.mensagem }}",
+                        stackTrace = null
+
+                ))
 
                 bBLoteLogRepository.saveAll(
                         respostaErro
@@ -175,6 +267,22 @@ class RestTemplateProxy(
 
                 if (retryCount < restTemplateProperties.maxRetry) {
 
+                    logClient.createLog(
+                            CreateLogRequestDto(
+                                    header = headerBody,
+                                    aplicacao = 4,
+                                    classe = this::class.java.simpleName,
+                                    metodo = "execute",
+                                    parametros = "[${e}]",
+                                    usuarioCodigo = null,
+                                    usuarioNome = null,
+                                    criticalidade = 3,
+                                    servico = 1,
+                                    mensagemDeErro = "STEP 1: TENTATIVA DE REENVIO ${retryCount + 1} DE ${restTemplateProperties.maxRetry}",
+                                    stackTrace = null
+                            )
+                    )
+
                     SchedulerExecutionTracker.getInstance().addLogTransfer(ProcessType.PAYMENT_SENDING_PROCESS, TransferLog(
                             message = "STEP 1: TENTATIVA DE REENVIO ${retryCount + 1} DE ${restTemplateProperties.maxRetry}")
                     )
@@ -193,6 +301,20 @@ class RestTemplateProxy(
                     SchedulerExecutionTracker.getInstance().addLogTransfer(ProcessType.PAYMENT_SENDING_PROCESS, TransferLog(
                             message = "STEP 1: LOTE ${loteId} NÃO FOI ENVIADO: ERRO ${e.message} - LIMITE DE TENTATIVAS ALCANÇADO")
                     )
+
+                    logClient.createLog(CreateLogRequestDto(
+                            header = headerBody,
+                            aplicacao = 4,
+                            classe = this::class.java.simpleName,
+                            metodo = "execute",
+                            parametros = "[${e}]",
+                            usuarioCodigo = null,
+                            usuarioNome = null,
+                            criticalidade = 3,
+                            servico = 1,
+                            mensagemDeErro = "STEP 1: LOTE ${loteId} NÃO FOI ENVIADO: ERRO ${e.message} - LIMITE DE TENTATIVAS ALCANÇADO",
+                            stackTrace = null
+                    ))
                     return null
                 }
             }

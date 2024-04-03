@@ -5,7 +5,7 @@ spring:
   application:
     name: pagamentos
   profiles:
-    active: dev
+    active: prd
 
   datasource:
     hikari:
@@ -22,7 +22,6 @@ rest-template:
   retryInterval: 5
   keyStoreInstance: PKCS12
   classPath: classpath:COPPETEC2024.pfx
-
 
 management:
   endpoint:
@@ -47,3 +46,10 @@ management:
 logging:
   file:
     name: logs/coppetec-bb.log
+
+feign:
+  client:
+    default:
+      config:
+        numberRetry: 3
+        retryInterval: 5

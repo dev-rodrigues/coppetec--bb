@@ -8,7 +8,7 @@ import javax.persistence.*
 @Table(
     catalog = "COPPETEC",
     schema = "conciliacaoBancaria",
-    name = "importacao_Teste"
+    name = "importacao"
 )
 class ConciliacaoBancariaImportacaoEntity(
     @Id
