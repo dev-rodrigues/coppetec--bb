@@ -21,32 +21,29 @@ import java.util.Objects.nonNull
 
 @Component
 class EnviarLoteService(
-        private val bBLoteRepository: BBLoteRepository,
-        private val bBTransferenciaEntityRepository: BBTransferenciaEntityRepository,
-        private val bBTransferenciaErroEntityRepository: BBTransferenciaErroEntityRepository,
-        private val bbPort: BBPort,
-        private val logClient: LogClient,
+    private val bBLoteRepository: BBLoteRepository,
+    private val bBTransferenciaEntityRepository: BBTransferenciaEntityRepository,
+    private val bBTransferenciaErroEntityRepository: BBTransferenciaErroEntityRepository,
+    private val bbPort: BBPort,
+    private val logClient: LogClient,
 ) {
 
     private val logger: Logger = LoggerFactory.getLogger(this.javaClass)
 
     fun executar(
-            loteEnvioPendenteDatabase: LoteEnvioPendenteDatabase,
-            transferencias: List<TransferenciaPendenteDatabase>,
-            headerBody: BigInteger,
+        loteEnvioPendenteDatabase: LoteEnvioPendenteDatabase,
+        transferencias: List<TransferenciaPendenteDatabase>,
+        headerBody: BigInteger,
     ) {
 
         val lote = bBLoteRepository.save(
-                BBLoteEntity(
-                        LocalDateTime.now()
-                )
+            BBLoteEntity(
+                LocalDateTime.now()
+            )
         )
 
-        SchedulerExecutionTracker.getInstance().addLogTransfer(PAYMENT_SENDING_PROCESS, TransferLog(
-                message = "STEP 1: LOTE CRIADO COM ID ${lote.id!!}"
-        ))
-
-        logClient.createLog(CreateLogRequestDto(
+        logClient.createLog(
+            CreateLogRequestDto(
                 header = headerBody,
                 aplicacao = 4,
                 classe = this::class.java.simpleName,
@@ -58,16 +55,14 @@ class EnviarLoteService(
                 servico = 1,
                 mensagemDeErro = "STEP 1: LOTE CRIADO COM ID ${lote.id!!}",
                 stackTrace = null
-        ))
+            )
+        )
 
 
         val loteDeEnvio = BBTransferirRequest.mapLoteRequest(loteEnvioPendenteDatabase, lote)
 
-        SchedulerExecutionTracker.getInstance().addLogTransfer(PAYMENT_SENDING_PROCESS, TransferLog(
-                message = "STEP 1: LOTE ${lote.id} PREPARADO PARA ENVIO $loteDeEnvio"
-        ))
-
-        logClient.createLog(CreateLogRequestDto(
+        logClient.createLog(
+            CreateLogRequestDto(
                 header = headerBody,
                 aplicacao = 4,
                 classe = this::class.java.simpleName,
@@ -79,22 +74,19 @@ class EnviarLoteService(
                 servico = 1,
                 mensagemDeErro = "STEP 1: LOTE ${lote.id} PREPARADO PARA ENVIO $loteDeEnvio",
                 stackTrace = null
-        ))
+            )
+        )
 
 
         val dbTransferencias: MutableList<BBTransferenciaEntity> = mutableListOf()
 
         transferencias.forEachIndexed { indexT, it ->
 
-            SchedulerExecutionTracker.getInstance().addLogTransfer(PAYMENT_SENDING_PROCESS, TransferLog(
-                    message = "STEP 1: GERANDO TRANSFERÊNCIA ${indexT + 1} DE ${transferencias.size}"
-            ))
-
             val dbTransferencia = bBTransferenciaEntityRepository.save(
-                    BBTransferenciaEntity.criarRegistroTransferencia(
-                            lote.id!!,
-                            it.documentoDebito!!
-                    )
+                BBTransferenciaEntity.criarRegistroTransferencia(
+                    lote.id!!,
+                    it.documentoDebito!!
+                )
             )
 
             dbTransferencias.plus(dbTransferencia)
@@ -104,7 +96,8 @@ class EnviarLoteService(
             loteDeEnvio.listaTransferencias += t
         }
 
-        logClient.createLog(CreateLogRequestDto(
+        logClient.createLog(
+            CreateLogRequestDto(
                 header = headerBody,
                 aplicacao = 4,
                 classe = this::class.java.simpleName,
@@ -116,28 +109,26 @@ class EnviarLoteService(
                 servico = 1,
                 mensagemDeErro = "STEP 1: lote ${lote.id} com ${dbTransferencias.size} transferências",
                 stackTrace = null
-        ))
-
-        val token = bbPort.autenticar(header = headerBody).body?.accessToken
-        
-        SchedulerExecutionTracker.getInstance().addLogTransfer(PAYMENT_SENDING_PROCESS, TransferLog(
-                message = "STEP 1: TOKEN DE AUTENTICAO GERADO")
+            )
         )
 
+        val token = bbPort.autenticar(header = headerBody).body?.accessToken
+
         logClient.createLog(
-                CreateLogRequestDto(
-                        header = headerBody,
-                        aplicacao = 4,
-                        classe = this::class.java.simpleName,
-                        metodo = "executar",
-                        parametros = "[${token}]",
-                        usuarioCodigo = null,
-                        usuarioNome = null,
-                        criticalidade = 3,
-                        servico = 1,
-                        mensagemDeErro = "STEP 1: lote ${lote.id} TOKEN BB OBTIDO COM SUCESSO, INICIANDO ENVIO DO LOTE",
-                        stackTrace = null
-                ))
+            CreateLogRequestDto(
+                header = headerBody,
+                aplicacao = 4,
+                classe = this::class.java.simpleName,
+                metodo = "executar",
+                parametros = "[${token}]",
+                usuarioCodigo = null,
+                usuarioNome = null,
+                criticalidade = 3,
+                servico = 1,
+                mensagemDeErro = "STEP 1: lote ${lote.id} TOKEN BB OBTIDO COM SUCESSO, INICIANDO ENVIO DO LOTE",
+                stackTrace = null
+            )
+        )
 
         val response = bbPort.transferir(loteDeEnvio, token!!, headerBody)
 
@@ -147,117 +138,108 @@ class EnviarLoteService(
             bBLoteRepository.save(lote.atualizarBBLoteEntityComResposta(body))
 
             logClient.createLog(
-                    CreateLogRequestDto(
-                            header = headerBody,
-                            aplicacao = 4,
-                            classe = this::class.java.simpleName,
-                            metodo = "executar",
-                            parametros = "[${body}]",
-                            usuarioCodigo = null,
-                            usuarioNome = null,
-                            criticalidade = 3,
-                            servico = 1,
-                            mensagemDeErro = "STEP 1: lote ${lote.id} ATUALIZADO COM RESPOSTA DO BANCO DO BRASIL",
-                            stackTrace = null
-                    )
-            )
-
-            SchedulerExecutionTracker.getInstance().addLogTransfer(PAYMENT_SENDING_PROCESS, TransferLog(
-                    message = "STEP 1: LOTE ${lote.id} ATUALIZADO COM RESPOSTA DO BANCO DO BRASIL")
+                CreateLogRequestDto(
+                    header = headerBody,
+                    aplicacao = 4,
+                    classe = this::class.java.simpleName,
+                    metodo = "executar",
+                    parametros = "[${body}]",
+                    usuarioCodigo = null,
+                    usuarioNome = null,
+                    criticalidade = 3,
+                    servico = 1,
+                    mensagemDeErro = "STEP 1: lote ${lote.id} ATUALIZADO COM RESPOSTA DO BANCO DO BRASIL",
+                    stackTrace = null
+                )
             )
 
             body.transferencias.forEach { transferenciaBB ->
 
                 logClient.createLog(
-                        CreateLogRequestDto(
-                                header = headerBody,
-                                aplicacao = 4,
-                                classe = this::class.java.simpleName,
-                                metodo = "executar",
-                                parametros = "[${transferenciaBB}]",
-                                usuarioCodigo = null,
-                                usuarioNome = null,
-                                criticalidade = 3,
-                                servico = 1,
-                                mensagemDeErro = "STEP 1: lote ${lote.id} transferência ${transferenciaBB.documentoDebito} consultando no banco de dados",
-                                stackTrace = null
-                        )
+                    CreateLogRequestDto(
+                        header = headerBody,
+                        aplicacao = 4,
+                        classe = this::class.java.simpleName,
+                        metodo = "executar",
+                        parametros = "[${transferenciaBB}]",
+                        usuarioCodigo = null,
+                        usuarioNome = null,
+                        criticalidade = 3,
+                        servico = 1,
+                        mensagemDeErro = "STEP 1: lote ${lote.id} transferência ${transferenciaBB.documentoDebito} consultando no banco de dados",
+                        stackTrace = null
+                    )
                 )
 
                 val dbTransferencia = bBTransferenciaEntityRepository
-                        .findByLoteAndLancamento(
-                                lote.id!!,
-                                transferenciaBB.documentoDebito!!
-                        )
+                    .findByLoteAndLancamento(
+                        lote.id!!,
+                        transferenciaBB.documentoDebito!!
+                    )
 
 
                 bBTransferenciaEntityRepository.save(
-                        dbTransferencia.atualizarRegistro(transferenciaBB)
+                    dbTransferencia.atualizarRegistro(transferenciaBB)
                 )
 
                 logClient.createLog(
-                        CreateLogRequestDto(
-                                header = headerBody,
-                                aplicacao = 4,
-                                classe = this::class.java.simpleName,
-                                metodo = "executar",
-                                parametros = "[${dbTransferencia}]",
-                                usuarioCodigo = null,
-                                usuarioNome = null,
-                                criticalidade = 3,
-                                servico = 1,
-                                mensagemDeErro = "STEP 1: lote ${lote.id} transferência ${transferenciaBB.documentoDebito} atualizada com sucesso",
-                                stackTrace = null
-                        )
+                    CreateLogRequestDto(
+                        header = headerBody,
+                        aplicacao = 4,
+                        classe = this::class.java.simpleName,
+                        metodo = "executar",
+                        parametros = "[${dbTransferencia}]",
+                        usuarioCodigo = null,
+                        usuarioNome = null,
+                        criticalidade = 3,
+                        servico = 1,
+                        mensagemDeErro = "STEP 1: lote ${lote.id} transferência ${transferenciaBB.documentoDebito} atualizada com sucesso",
+                        stackTrace = null
+                    )
                 )
 
                 logClient.createLog(
-                        CreateLogRequestDto(
-                                header = headerBody,
-                                aplicacao = 4,
-                                classe = this::class.java.simpleName,
-                                metodo = "executar",
-                                parametros = "[${transferenciaBB.erros}]",
-                                usuarioCodigo = null,
-                                usuarioNome = null,
-                                criticalidade = 3,
-                                servico = 1,
-                                mensagemDeErro = "STEP 1: lote ${lote.id} transferência ${transferenciaBB.documentoDebito} com ${transferenciaBB.erros.size} erros",
-                                stackTrace = null
-                        )
+                    CreateLogRequestDto(
+                        header = headerBody,
+                        aplicacao = 4,
+                        classe = this::class.java.simpleName,
+                        metodo = "executar",
+                        parametros = "[${transferenciaBB.erros}]",
+                        usuarioCodigo = null,
+                        usuarioNome = null,
+                        criticalidade = 3,
+                        servico = 1,
+                        mensagemDeErro = "STEP 1: lote ${lote.id} transferência ${transferenciaBB.documentoDebito} com ${transferenciaBB.erros.size} erros",
+                        stackTrace = null
+                    )
                 )
 
                 bBTransferenciaErroEntityRepository.saveAll(
-                        transferenciaBB
-                                .erros
-                                .map { erro ->
-                                    BBTransferenciaErroEntity(
-                                            id = null,
-                                            transferenciaId = dbTransferencia.id!!,
-                                            codigoErro = erro
-                                    )
-                                }
+                    transferenciaBB
+                        .erros
+                        .map { erro ->
+                            BBTransferenciaErroEntity(
+                                id = null,
+                                transferenciaId = dbTransferencia.id!!,
+                                codigoErro = erro
+                            )
+                        }
                 )
             }
         } else {
             logger.error("STEP 1: TIVEMOS UM ERRO AO ENVIAR O LOTE ${lote.id!!}")
-            SchedulerExecutionTracker.getInstance().addLogTransfer(PAYMENT_SENDING_PROCESS, TransferLog(
-                    message = "STEP 1: TIVEMOS UM ERRO AO ENVIAR O LOTE ${lote.id!!}")
-            )
-            logClient.createLog(
-                    CreateLogRequestDto(
-                            header = headerBody,
-                            aplicacao = 4,
-                            classe = this::class.java.simpleName,
-                            metodo = "executar",
-                            parametros = "[${lote.id!!}]",
-                            usuarioCodigo = null,
-                            usuarioNome = null,
-                            criticalidade = 1,
-                            servico = 1,
-                            mensagemDeErro = "STEP 1: TIVEMOS UM ERRO AO ENVIAR O LOTE ${lote.id!!} - ${response?.statusCode} - ${response?.body} - LOTE NÃO ENVIADO",
-                            stackTrace = null
-                    )
+            CreateLogRequestDto(
+                header = headerBody,
+                aplicacao = 4,
+                classe = this::class.java.simpleName,
+                metodo = "executar",
+                parametros = "[${lote.id!!}]",
+                usuarioCodigo = null,
+                usuarioNome = null,
+                criticalidade = 1,
+                servico = 1,
+                mensagemDeErro = "STEP 1: TIVEMOS UM ERRO AO ENVIAR O LOTE ${lote.id!!} - ${response?.statusCode} - ${response?.body} - LOTE NÃO ENVIADO",
+                stackTrace = null
             )
         }
     }

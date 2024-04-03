@@ -162,10 +162,6 @@ class RestTemplateProxy(
 
         while (true) {
             try {
-                SchedulerExecutionTracker.getInstance().addLogTransfer(ProcessType.PAYMENT_SENDING_PROCESS, TransferLog(
-                        message = "STEP 1: ENVIANDO LOTE $loteId")
-                )
-
                 logClient.createLog(
                         CreateLogRequestDto(
                                 header = headerBody,
@@ -198,10 +194,6 @@ class RestTemplateProxy(
                                 mensagemDeErro = "STEP 1: LOTE $loteId ENVIADO COM SUCESSO",
                                 stackTrace = null
                         )
-                )
-
-                SchedulerExecutionTracker.getInstance().addLogTransfer(ProcessType.PAYMENT_SENDING_PROCESS, TransferLog(
-                        message = "STEP 1: LOTE $loteId ENVIADO COM SUCESSO")
                 )
 
                 val responseJson = gson.toJson(response)
@@ -254,16 +246,8 @@ class RestTemplateProxy(
                                 }
                 )
 
-                SchedulerExecutionTracker.getInstance().addLogTransfer(ProcessType.PAYMENT_SENDING_PROCESS, TransferLog(
-                        message = "STEP 1: LOTE ${loteId} NÃO FOI ENVIADO: CODIGO ${httpStatusCode} - ERRO ${respostaErro.erros[0]?.mensagem}")
-                )
-
                 return null
             } catch (e: Exception) {
-
-                SchedulerExecutionTracker.getInstance().addLogTransfer(ProcessType.PAYMENT_SENDING_PROCESS, TransferLog(
-                        message = "STEP 1: LOTE ${loteId} NÃO FOI ENVIADO: ERRO ${e.message}")
-                )
 
                 if (retryCount < restTemplateProperties.maxRetry) {
 
@@ -283,10 +267,6 @@ class RestTemplateProxy(
                             )
                     )
 
-                    SchedulerExecutionTracker.getInstance().addLogTransfer(ProcessType.PAYMENT_SENDING_PROCESS, TransferLog(
-                            message = "STEP 1: TENTATIVA DE REENVIO ${retryCount + 1} DE ${restTemplateProperties.maxRetry}")
-                    )
-
                     logRetryWarning(
                             e = e,
                             retryAttempt = retryCount + 1,
@@ -298,10 +278,6 @@ class RestTemplateProxy(
 
                     retryCount++
                 } else {
-                    SchedulerExecutionTracker.getInstance().addLogTransfer(ProcessType.PAYMENT_SENDING_PROCESS, TransferLog(
-                            message = "STEP 1: LOTE ${loteId} NÃO FOI ENVIADO: ERRO ${e.message} - LIMITE DE TENTATIVAS ALCANÇADO")
-                    )
-
                     logClient.createLog(CreateLogRequestDto(
                             header = headerBody,
                             aplicacao = 4,

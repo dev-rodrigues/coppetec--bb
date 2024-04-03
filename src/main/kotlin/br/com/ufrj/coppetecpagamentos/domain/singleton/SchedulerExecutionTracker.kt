@@ -28,15 +28,6 @@ class SchedulerExecutionTracker private constructor() {
         records.add(record)
     }
 
-    fun addLogTransfer(processType: ProcessType, log: TransferLog) {
-        log.processType = processType
-        val records = executionRecordsMap[processType] ?: return
-        val index = records.indexOfLast { it.processType == processType }
-        if (index != -1) {
-            records[index].transferLogs.add(log)
-        }
-    }
-
     private fun trimExecutionRecords(records: MutableList<ExecutionRecord>) {
         if (records.size > TRIM_THRESHOLD_PER_PROCESS) {
             val toRemove = records.size - TRIM_THRESHOLD_PER_PROCESS
