@@ -150,12 +150,15 @@ class ExtratoService(
 
                         val movimento = response.listaLancamento.map { lancamento ->
 
-                            val dataMovimento = DateUtil.formatDate(lancamento.dataMovimento)
+                            val dataMovimento = DateUtil.formatDate(lancamento.dataLancamento)
                             logger.info("DATA MOVIMENTO: $dataMovimento")
 
                             val dbDate = DateUtil.formatDate(consulta.consultaPeriodoAte)
 
-                            if (dataMovimento != null && dataMovimento.dayOfWeek <= dbDate.dayOfWeek) {
+                            if (dataMovimento != null &&
+                                (dataMovimento.toLocalDate().isBefore(dbDate.toLocalDate()) ||
+                                        dataMovimento.toLocalDate().isEqual(dbDate.toLocalDate()))
+                            ) {
 
                                 ConciliacaoBancariaMovimentoEntity(
                                     id = null,

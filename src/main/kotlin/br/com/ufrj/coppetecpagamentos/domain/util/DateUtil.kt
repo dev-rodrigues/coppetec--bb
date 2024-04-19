@@ -2,6 +2,7 @@ package br.com.ufrj.coppetecpagamentos.domain.util
 
 import java.math.BigInteger
 import java.time.Instant
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -22,6 +23,8 @@ object DateUtil {
     }
 
     fun formatDate(dbDate: String): LocalDateTime {
-        return LocalDateTime.parse(dbDate, formatter)
+        val formatter = DateTimeFormatter.ofPattern("ddMMyyyy")
+        val date = LocalDate.parse(dbDate, formatter)
+        return date.atStartOfDay()
     }
 }

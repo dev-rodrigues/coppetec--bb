@@ -17,15 +17,15 @@ import org.springframework.stereotype.Component
 
 @Component
 class BBTransferenciaStp2Schedule(
-        private val consultarLoteService: ConsultarLoteService,
-        private val bBLoteRepository: BBLoteRepository,
-        private val togglePort: TogglePort,
-        private val properties: ScheduleProperties,
-        private val logClient: LogClient,
+    private val consultarLoteService: ConsultarLoteService,
+    private val bBLoteRepository: BBLoteRepository,
+    private val togglePort: TogglePort,
+    private val properties: ScheduleProperties,
+    private val logClient: LogClient,
 ) {
 
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
-    private var isRunning = true
+    private var isRunning = false
 
     companion object {
         const val TIME_ZONE = "America/Sao_Paulo"
@@ -33,7 +33,7 @@ class BBTransferenciaStp2Schedule(
 
     @Async
     @Scheduled(
-            fixedDelay = 1 * 60 * 1000, zone = TIME_ZONE
+        fixedDelay = 1 * 60 * 1000, zone = TIME_ZONE
     )
     fun step2() {
 
@@ -49,19 +49,19 @@ class BBTransferenciaStp2Schedule(
             if (active) {
                 logger.info("STEP 2: CONSULTAR LOTES PRIORITÁRIOS")
                 logClient.createLog(
-                        CreateLogRequestDto(
-                                header = headerBody!!.id,
-                                aplicacao = 1,
-                                classe = this::class.java.simpleName,
-                                metodo = "step2",
-                                parametros = "",
-                                usuarioCodigo = null,
-                                usuarioNome = null,
-                                criticalidade = 1,
-                                servico = 1,
-                                mensagemDeErro = "STEP 2: CONSULTAR LOTES PRIORITÁRIOS",
-                                stackTrace = null
-                        )
+                    CreateLogRequestDto(
+                        header = headerBody!!.id,
+                        aplicacao = 1,
+                        classe = this::class.java.simpleName,
+                        metodo = "step2",
+                        parametros = "",
+                        usuarioCodigo = null,
+                        usuarioNome = null,
+                        criticalidade = 1,
+                        servico = 1,
+                        mensagemDeErro = "STEP 2: CONSULTAR LOTES PRIORITÁRIOS",
+                        stackTrace = null
+                    )
                 )
 
                 SchedulerExecutionTracker.getInstance().recordExecutionStart(PRIORITY_PAYMENT_INQUIRY_PROCESS)
@@ -69,19 +69,19 @@ class BBTransferenciaStp2Schedule(
                 val lotes = bBLoteRepository.findLotesByEstadoRequisicao()
 
                 logClient.createLog(
-                        CreateLogRequestDto(
-                                header = headerBody.id,
-                                aplicacao = 1,
-                                classe = this::class.java.simpleName,
-                                metodo = "step2",
-                                parametros = "$lotes",
-                                usuarioCodigo = null,
-                                usuarioNome = null,
-                                criticalidade = 1,
-                                servico = 1,
-                                mensagemDeErro = "STEP 2: TOTAL DE LOTES PENDENTES DE CONSULTA ${lotes.size}",
-                                stackTrace = null
-                        )
+                    CreateLogRequestDto(
+                        header = headerBody.id,
+                        aplicacao = 1,
+                        classe = this::class.java.simpleName,
+                        metodo = "step2",
+                        parametros = "$lotes",
+                        usuarioCodigo = null,
+                        usuarioNome = null,
+                        criticalidade = 1,
+                        servico = 1,
+                        mensagemDeErro = "STEP 2: TOTAL DE LOTES PENDENTES DE CONSULTA ${lotes.size}",
+                        stackTrace = null
+                    )
                 )
 
                 logger.info("STEP 2: TOTAL DE LOTES PENDENTES DE CONSULTA {} ", lotes.size)
@@ -89,47 +89,48 @@ class BBTransferenciaStp2Schedule(
                 lotes.forEach {
 
                     logClient.createLog(
-                            CreateLogRequestDto(
-                                    header = headerBody.id,
-                                    aplicacao = 1,
-                                    classe = this::class.java.simpleName,
-                                    metodo = "step2",
-                                    parametros = "$it",
-                                    usuarioCodigo = null,
-                                    usuarioNome = null,
-                                    criticalidade = 1,
-                                    servico = 1,
-                                    mensagemDeErro = "STEP 2: CONSULTANDO LOTE ${it.id}",
-                                    stackTrace = null
-                            )
+                        CreateLogRequestDto(
+                            header = headerBody.id,
+                            aplicacao = 1,
+                            classe = this::class.java.simpleName,
+                            metodo = "step2",
+                            parametros = "$it",
+                            usuarioCodigo = null,
+                            usuarioNome = null,
+                            criticalidade = 1,
+                            servico = 1,
+                            mensagemDeErro = "STEP 2: CONSULTANDO LOTE ${it.id}",
+                            stackTrace = null
+                        )
                     )
 
                     consultarLoteService.executar(
-                            lote = it, step = 2,
-                            header = headerBody.id
+                        lote = it, step = 2,
+                        header = headerBody.id
                     )
                 }
 
             } else {
                 logClient.createLog(
-                        CreateLogRequestDto(
-                                header = headerBody!!.id,
-                                aplicacao = 1,
-                                classe = this::class.java.simpleName,
-                                metodo = "step2",
-                                parametros = "",
-                                usuarioCodigo = null,
-                                usuarioNome = null,
-                                criticalidade = 3,
-                                servico = 1,
-                                mensagemDeErro = "STEP 2: CONSULTA DE LOTES PRIORITÁRIOS DESABILITADO",
-                                stackTrace = null
-                        ))
+                    CreateLogRequestDto(
+                        header = headerBody!!.id,
+                        aplicacao = 1,
+                        classe = this::class.java.simpleName,
+                        metodo = "step2",
+                        parametros = "",
+                        usuarioCodigo = null,
+                        usuarioNome = null,
+                        criticalidade = 3,
+                        servico = 1,
+                        mensagemDeErro = "STEP 2: CONSULTA DE LOTES PRIORITÁRIOS DESABILITADO",
+                        stackTrace = null
+                    )
+                )
             }
         } finally {
             isRunning = false
             SchedulerExecutionTracker.getInstance().recordExecutionEnd(
-                    PRIORITY_PAYMENT_INQUIRY_PROCESS
+                PRIORITY_PAYMENT_INQUIRY_PROCESS
             )
         }
     }

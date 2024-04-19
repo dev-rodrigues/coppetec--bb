@@ -13,19 +13,19 @@ import java.util.Objects.nonNull
 
 @Component
 class BBTransferenciaStp4Schedule(
-        private val service: ConsultarLoteService,
-        private val repository: RemessaEletronicaAtualizacoesTEDRepository,
-        private val bbTransferenciasRepository: BBTransferenciaEntityRepository,
-        private val bbPort: BBPort,
-        private val logClient: LogClient,
+    private val service: ConsultarLoteService,
+    private val repository: RemessaEletronicaAtualizacoesTEDRepository,
+    private val bbTransferenciasRepository: BBTransferenciaEntityRepository,
+    private val bbPort: BBPort,
+    private val logClient: LogClient,
 ) {
 
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
-    private var isRunning = true
+    private var isRunning = false
 
     @Scheduled(
-            fixedDelay = 5 * 60 * 1000,
-            zone = BBTransferenciaStp2Schedule.TIME_ZONE
+        fixedDelay = 5 * 60 * 1000,
+        zone = BBTransferenciaStp2Schedule.TIME_ZONE
     )
     fun step4() {
 
@@ -49,9 +49,9 @@ class BBTransferenciaStp4Schedule(
                 val token = bbPort.autenticar(header = headerBody!!.id)
 
                 val transferencia = bbPort.consultarTransferencia(
-                        identificadorTransferencia = it.identificadorTransferencia,
-                        accessToken = requireNotNull(token.body?.accessToken),
-                        header = headerBody.id
+                    identificadorTransferencia = it.identificadorTransferencia,
+                    accessToken = requireNotNull(token.body?.accessToken),
+                    header = headerBody.id
                 )
 
                 if (nonNull(transferencia)) {
@@ -59,11 +59,11 @@ class BBTransferenciaStp4Schedule(
                     logger.info("STEP 4: REMESSA ${it.identificadorTransferencia} CONSULTADA COM SUCESSO")
                     bbTransferenciasRepository.findById(it.transferenciaId).ifPresent { transferenciaEntity ->
                         service.processaTransferencia(
-                                step = 4,
-                                transferencia = transferenciaEntity,
-                                lote = transferenciaEntity.lote!!,
-                                bbTransferencia = transferencia!!,
-                                header = headerBody.id
+                            step = 4,
+                            transferencia = transferenciaEntity,
+                            lote = transferenciaEntity.lote!!,
+                            bbTransferencia = transferencia!!,
+                            header = headerBody.id
                         )
                     }
                 }

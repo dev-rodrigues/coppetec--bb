@@ -32,7 +32,7 @@ bb:
     transferir: https://api-ip.bb.com.br/pagamentos-lote/v1/lotes-transferencias
     lotesTransferencias: https://api-ip.bb.com.br/pagamentos-lote/v1/lotes-transferencias
     liberarLote: https://api-ip.bb.com.br/pagamentos-lote/v1/liberar-pagamentos
-    extrato: https://api-ip.bb.com.br/extratos/v1/conta-corrente/{agencia}/conta/{conta}
+    extrato: https://api-extratos.bb.com.br
 
 
 eureka:
