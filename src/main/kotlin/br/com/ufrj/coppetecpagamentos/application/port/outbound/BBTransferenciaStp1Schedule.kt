@@ -29,7 +29,7 @@ class BBTransferenciaStp1Schedule(
 
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
     private val parts: Int = 300
-    private var isRunning = false
+    private var isRunning = true
 
     @Async
     @Scheduled(

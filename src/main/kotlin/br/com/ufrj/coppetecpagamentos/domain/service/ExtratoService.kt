@@ -27,26 +27,27 @@ import javax.transaction.Transactional
 
 @Service
 class ExtratoService(
-        private val bbPort: BBPort,
-        private val conciliacaoRepository: ConciliacaoBancariaImportacaoEntityRepository,
-        private val movimentoEntityRepository: ConciliacaoBancariaMovimentoEntityRepository,
-        private val transactionManager: PlatformTransactionManager,
-        private val logClient: LogClient,
+    private val bbPort: BBPort,
+    private val conciliacaoRepository: ConciliacaoBancariaImportacaoEntityRepository,
+    private val movimentoEntityRepository: ConciliacaoBancariaMovimentoEntityRepository,
+    private val transactionManager: PlatformTransactionManager,
+    private val logClient: LogClient,
 ) {
 
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
 
 
     fun getExtrato(
-            agencia: String,
-            conta: String,
-            dataInicioSolicitacao: String,
-            dataFimSolicitacao: String,
-            headerBody: BigInteger,
+        agencia: String,
+        conta: String,
+        dataInicioSolicitacao: String,
+        dataFimSolicitacao: String,
+        headerBody: BigInteger,
     ): BBConsultaExtratoResponseDto? {
 
-        val token = bbPort.autenticar(api = API.EXTRATO,
-                header = headerBody
+        val token = bbPort.autenticar(
+            api = API.EXTRATO,
+            header = headerBody
         ).body?.accessToken!!
 
         var nextPage = 1
@@ -55,43 +56,43 @@ class ExtratoService(
         while (nextPage != 0) {
 
             logClient.createLog(
-                    CreateLogRequestDto(
-                            header = headerBody,
-                            aplicacao = 1,
-                            classe = this::class.java.simpleName,
-                            metodo = "getExtrato",
-                            parametros = "[$agencia, $conta, $dataInicioSolicitacao, $dataFimSolicitacao, $headerBody]",
-                            usuarioCodigo = null,
-                            usuarioNome = null,
-                            criticalidade = 1,
-                            servico = 1,
-                            mensagemDeErro = "CONSULTANDO EXTRATO DE $agencia, $conta, $dataInicioSolicitacao, $dataFimSolicitacao",
-                    )
+                CreateLogRequestDto(
+                    header = headerBody,
+                    aplicacao = 1,
+                    classe = this::class.java.simpleName,
+                    metodo = "getExtrato",
+                    parametros = "[$agencia, $conta, $dataInicioSolicitacao, $dataFimSolicitacao, $headerBody]",
+                    usuarioCodigo = null,
+                    usuarioNome = null,
+                    criticalidade = 1,
+                    servico = 1,
+                    mensagemDeErro = "CONSULTANDO EXTRATO DE $agencia, $conta, $dataInicioSolicitacao, $dataFimSolicitacao",
+                )
             )
 
             val response = bbPort.consultarExtrato(
-                    agencia = agencia,
-                    conta = conta,
-                    token = token,
-                    numeroPaginaSolicitacao = nextPage,
-                    dataInicioSolicitacao = dataInicioSolicitacao,
-                    dataFimSolicitacao = dataFimSolicitacao,
-                    headerBody = headerBody
+                agencia = agencia,
+                conta = conta,
+                token = token,
+                numeroPaginaSolicitacao = nextPage,
+                dataInicioSolicitacao = dataInicioSolicitacao,
+                dataFimSolicitacao = dataFimSolicitacao,
+                headerBody = headerBody
             )
 
             logClient.createLog(
-                    CreateLogRequestDto(
-                            header = headerBody,
-                            aplicacao = 1,
-                            classe = this::class.java.simpleName,
-                            metodo = "getExtrato",
-                            parametros = "[$agencia, $conta, $dataInicioSolicitacao, $dataFimSolicitacao, $headerBody]",
-                            usuarioCodigo = null,
-                            usuarioNome = null,
-                            criticalidade = 1,
-                            servico = 1,
-                            mensagemDeErro = "EXTRATO DE $agencia, $conta, $dataInicioSolicitacao, $dataFimSolicitacao CONSULTADO COM SUCESSO: $response",
-                    )
+                CreateLogRequestDto(
+                    header = headerBody,
+                    aplicacao = 1,
+                    classe = this::class.java.simpleName,
+                    metodo = "getExtrato",
+                    parametros = "[$agencia, $conta, $dataInicioSolicitacao, $dataFimSolicitacao, $headerBody]",
+                    usuarioCodigo = null,
+                    usuarioNome = null,
+                    criticalidade = 1,
+                    servico = 1,
+                    mensagemDeErro = "EXTRATO DE $agencia, $conta, $dataInicioSolicitacao, $dataFimSolicitacao CONSULTADO COM SUCESSO: $response",
+                )
             )
 
             if (extrato != null) {
@@ -113,9 +114,9 @@ class ExtratoService(
 
     @Transactional
     fun register(
-            consulta: BBContasAtivas,
-            response: BBConsultaExtratoResponseDto?,
-            headerBody: BigInteger,
+        consulta: BBContasAtivas,
+        response: BBConsultaExtratoResponseDto?,
+        headerBody: BigInteger,
     ) {
         val transactionTemplate = TransactionTemplate(transactionManager)
 
@@ -124,31 +125,39 @@ class ExtratoService(
 
                 try {
                     val importacao = conciliacaoRepository.save(
-                            ConciliacaoBancariaImportacaoEntity(
-                                    id = null,
-                                    idLayOut = BigInteger.TWO,
-                                    idDocumento = null,
-                                    bancoOrigem = "001",
-                                    arquivoNome = "IMPORTED WITH API",
-                                    arquivoGeracaoDataHora = LocalDateTime.now(),
-                                    arquivoNumeroSequencial = BigInteger.ONE,
-                                    arquivoNumeroVersaoLayOut = "NaN",
-                                    qtdLotes = 1,
-                                    qtdRegistros = response?.listaLancamento?.size ?: 0,
-                                    qtdContas = 1,
-                                    dataHora = LocalDateTime.now(),
-                                    idUsuario = BigInteger.ONE,
-                                    consultaAgencia = consulta.agenciaSemDv?.replace(".", ""),
-                                    consultaContaCorrente = consulta.contaCorrente,
-                                    consultaPeriodoDe = formatarData(consulta.consultaPeriodoDe!!.toBigInteger()),
-                                    consultaPeriodoAte = formatarData(consulta.consultaPeriodoAte!!.toBigInteger())
-                            )
+                        ConciliacaoBancariaImportacaoEntity(
+                            id = null,
+                            idLayOut = BigInteger.TWO,
+                            idDocumento = null,
+                            bancoOrigem = "001",
+                            arquivoNome = "IMPORTED WITH API",
+                            arquivoGeracaoDataHora = LocalDateTime.now(),
+                            arquivoNumeroSequencial = BigInteger.ONE,
+                            arquivoNumeroVersaoLayOut = "NaN",
+                            qtdLotes = 1,
+                            qtdRegistros = response?.listaLancamento?.size ?: 0,
+                            qtdContas = 1,
+                            dataHora = LocalDateTime.now(),
+                            idUsuario = BigInteger.ONE,
+                            consultaAgencia = consulta.agenciaSemDv?.replace(".", ""),
+                            consultaContaCorrente = consulta.contaCorrente,
+                            consultaPeriodoDe = formatarData(consulta.consultaPeriodoDe!!.toBigInteger()),
+                            consultaPeriodoAte = formatarData(consulta.consultaPeriodoAte!!.toBigInteger())
+                        )
                     )
 
                     if (response != null) {
 
                         val movimento = response.listaLancamento.map { lancamento ->
-                            ConciliacaoBancariaMovimentoEntity(
+
+                            val dataMovimento = DateUtil.formatDate(lancamento.dataMovimento)
+                            logger.info("DATA MOVIMENTO: $dataMovimento")
+
+                            val dbDate = DateUtil.formatDate(consulta.consultaPeriodoAte)
+
+                            if (dataMovimento != null && dataMovimento.dayOfWeek <= dbDate.dayOfWeek) {
+
+                                ConciliacaoBancariaMovimentoEntity(
                                     id = null,
                                     idImportacao = importacao.id,
                                     numeroSequencialExtrato = ZERO,
@@ -184,11 +193,16 @@ class ExtratoService(
                                     numeroLancamentos = 1,
                                     numeroCpfCnpjContrapartida = lancamento.numeroCpfCnpjContrapartida.toString(),
                                     indicadorTipoPessoaContrapartida = lancamento.indicadorTipoPessoaContrapartida,
-                            )
+                                )
+                            } else {
+                                null
+                            }
+
+
                         }
 
                         movimentoEntityRepository.saveAll(
-                                movimento
+                            movimento.filterNotNull()
                         )
                     }
 

@@ -20,4 +20,8 @@ object DateUtil {
 
         return LocalDateTime.of(ano, mes, dia, 0, 0)
     }
+
+    fun formatDate(dbDate: String): LocalDateTime {
+        return LocalDateTime.parse(dbDate, formatter)
+    }
 }
