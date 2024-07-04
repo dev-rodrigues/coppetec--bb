@@ -28,7 +28,7 @@ class BBConsultarExtrato(
 ) {
 
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
-    private var isRunning = true
+    private var isRunning = false
 
     @Async
     @Scheduled(

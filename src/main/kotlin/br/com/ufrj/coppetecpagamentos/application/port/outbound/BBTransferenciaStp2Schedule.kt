@@ -31,7 +31,6 @@ class BBTransferenciaStp2Schedule(
         const val TIME_ZONE = "America/Sao_Paulo"
     }
 
-    @Async
     @Scheduled(
         fixedDelay = 1 * 60 * 1000, zone = TIME_ZONE
     )

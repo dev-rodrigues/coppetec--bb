@@ -31,9 +31,8 @@ class BBTransferenciaStp1Schedule(
     private val parts: Int = 250
     private var isRunning = false
 
-    @Async
     @Scheduled(
-        fixedDelay = 60 * 1000, zone = BBTransferenciaStp2Schedule.TIME_ZONE
+        fixedDelay = 1000, zone = BBTransferenciaStp2Schedule.TIME_ZONE
     )
     fun step1() {
         if (isRunning) {
