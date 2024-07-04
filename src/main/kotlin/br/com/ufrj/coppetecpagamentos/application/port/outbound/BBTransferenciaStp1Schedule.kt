@@ -28,7 +28,7 @@ class BBTransferenciaStp1Schedule(
 ) {
 
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
-    private val parts: Int = 1
+    private val parts: Int = 250
     private var isRunning = false
 
     @Async
