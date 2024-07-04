@@ -29,7 +29,7 @@ data class Pagamento(
     @SerializedName("agenciaCredito")
     val agenciaCredito: BigInteger,
     @SerializedName("contaCorrenteCredito")
-    val contaCorrenteCredito: Int,
+    val contaCorrenteCredito: BigInteger,
     @SerializedName("digitoVerificadorContaCorrente")
     val digitoVerificadorContaCorrente: String,
     @SerializedName("contaPagamentoCredito")
@@ -59,5 +59,5 @@ data class Pagamento(
     @SerializedName("indicadorAceite")
     val indicadorAceite: String,
     @SerializedName("erros")
-    val erros: List<Int>
+    val erros: List<BigInteger>
 )

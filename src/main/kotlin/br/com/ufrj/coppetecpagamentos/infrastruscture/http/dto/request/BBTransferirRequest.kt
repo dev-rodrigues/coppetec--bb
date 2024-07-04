@@ -10,9 +10,9 @@ import java.time.format.DateTimeFormatter
 data class BBTransferirRequest(
     var numeroRequisicao: BigInteger,
     var numeroContratoPagamento: String,
-    var agenciaDebito: Int,
-    var contaCorrenteDebito: Int,
-    var digitoVerificadorContaCorrente: Int,
+    var agenciaDebito: BigInteger,
+    var contaCorrenteDebito: BigInteger,
+    var digitoVerificadorContaCorrente: BigInteger,
     var tipoPagamento: Int,
     var listaTransferencias: List<BBTransferenciaRequest> = mutableListOf()
 ) {
@@ -24,9 +24,9 @@ data class BBTransferirRequest(
             return BBTransferirRequest(
                 lote.id!!,
                 loteEnvioPendenteDatabase.contratoDePagamento!!,
-                loteEnvioPendenteDatabase.agenciaDebito?.toInt()!!,
-                loteEnvioPendenteDatabase.contaDebito?.toInt()!!,
-                loteEnvioPendenteDatabase.contaDebitoDigito?.toInt()!!,
+                loteEnvioPendenteDatabase.agenciaDebito?.toBigInteger()!!,
+                loteEnvioPendenteDatabase.contaDebito?.toBigInteger()!!,
+                loteEnvioPendenteDatabase.contaDebitoDigito?.toBigInteger()!!,
                 loteEnvioPendenteDatabase.tipoPagamento?.toInt()!!,
                 mutableListOf()
             )
@@ -35,40 +35,40 @@ data class BBTransferirRequest(
 }
 
 data class BBTransferenciaRequest(
-    var numeroCOMPE: Int? = null,
-    var numeroISPB: Int? = null,
-    var agenciaCredito: Int? = null,
-    var contaCorrenteCredito: Int? = null,
+    var numeroCOMPE: BigInteger? = null,
+    var numeroISPB: BigInteger? = null,
+    var agenciaCredito: BigInteger? = null,
+    var contaCorrenteCredito: BigInteger? = null,
     var digitoVerificadorContaCorrente: String? = null,
     var contaPagamentoCredito: String? = null,
     var cpfBeneficiario: Long? = null,
     var cnpjBeneficiario: Long? = null,
-    var dataTransferencia: Int? = null,
+    var dataTransferencia: BigInteger? = null,
     var valorTransferencia: BigDecimal? = null,
-    var documentoDebito: Int? = null,
-    var documentoCredito: Int? = null,
-    var codigoFinalidadeDOC: Int? = null,
-    var codigoFinalidadeTED: Int? = null,
+    var documentoDebito: BigInteger? = null,
+    var documentoCredito: BigInteger? = null,
+    var codigoFinalidadeDOC: BigInteger? = null,
+    var codigoFinalidadeTED: BigInteger? = null,
     var numeroDepositoJudicial: String? = null,
     var descricaoTransferencia: String? = null,
 ) {
     companion object {
         fun mapTransferenciaRequest(transacaoPendente: TransferenciaPendenteDatabase): BBTransferenciaRequest {
             return BBTransferenciaRequest(
-                numeroCOMPE = transacaoPendente.numeroCOMPE?.toInt(),
-                numeroISPB = transacaoPendente.numeroISPB?.toInt(),
-                agenciaCredito = transacaoPendente.beneficiarioAgencia?.toInt(),
-                contaCorrenteCredito = transacaoPendente.beneficiarioContaCorrente?.toInt(),
+                numeroCOMPE = transacaoPendente.numeroCOMPE?.toBigInteger(),
+                numeroISPB = transacaoPendente.numeroISPB?.toBigInteger(),
+                agenciaCredito = transacaoPendente.beneficiarioAgencia,
+                contaCorrenteCredito = transacaoPendente.beneficiarioContaCorrente,
                 digitoVerificadorContaCorrente = transacaoPendente.beneficiarioContaCorrenteDV,
                 contaPagamentoCredito = null,
                 cpfBeneficiario = transacaoPendente.beneficiarioCPF?.toLong(),
                 cnpjBeneficiario = transacaoPendente.beneficiarioCNPJ?.toLong(),
-                dataTransferencia = transacaoPendente.transferenciaData?.format(DateTimeFormatter.ofPattern("ddMMyyyy"))?.toInt(),
+                dataTransferencia = transacaoPendente.transferenciaData?.format(DateTimeFormatter.ofPattern("ddMMyyyy"))?.toBigInteger(),
                 valorTransferencia = transacaoPendente.transferenciaValor,
-                documentoDebito = transacaoPendente.documentoDebito?.toInt(),
-                documentoCredito = transacaoPendente.documentoCredito?.toInt(),
-                codigoFinalidadeDOC = transacaoPendente.codigoFinalidadeDOC?.toInt(),
-                codigoFinalidadeTED = transacaoPendente.codigoFinalidadeTED?.toInt(),
+                documentoDebito = transacaoPendente.documentoDebito,
+                documentoCredito = transacaoPendente.documentoCredito,
+                codigoFinalidadeDOC = transacaoPendente.codigoFinalidadeDOC?.toBigInteger(),
+                codigoFinalidadeTED = transacaoPendente.codigoFinalidadeTED?.toBigInteger(),
                 numeroDepositoJudicial = transacaoPendente.numeroDepositoJudicial,
                 descricaoTransferencia = transacaoPendente.descricaoTransferencia
             )

@@ -9,26 +9,26 @@ import java.math.BigInteger
 interface BBPort {
     fun autenticar(
             api: API = API.TRANSFERENCIA,
-            header: BigInteger,
+//            header: BigInteger,
     ): ResponseEntity<BBAutenticacaoResponseDto>
 
     //    fun liberarLote(body: BBLiberacaoLoteRequest, token: String): ResponseEntity<BBLiberacaoLoteResponse>
     fun consultarLote(
             idLote: BigInteger,
             accessToken: String,
-            header: BigInteger,
+//            header: BigInteger,
     ): ResponseEntity<BBConsultaLoteResponseDto>?
 
     fun consultarTransferencia(
             identificadorTransferencia: BigInteger,
             accessToken: String,
-            header: BigInteger,
+//            header: BigInteger,
     ): BBConsultaTransferenciaResponseDto?
 
     fun transferir(
             loteDeEnvio: BBTransferirRequest,
             token: String,
-            headerBody: BigInteger,
+//            headerBody: BigInteger,
     ): ResponseEntity<BBTransferenciaResponseDto>?
 
     fun consultarExtrato(

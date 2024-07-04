@@ -22,11 +22,11 @@ class ConsultarTransferenciaBBController(
             @PathVariable identificadorTransferencia: BigInteger,
     ): ResponseEntity<BBConsultaTransferenciaResponseDto> {
         val id = logClient.getHeader().body!!.id
-        val token = bbPort.autenticar(header = id)
+        val token = bbPort.autenticar()
         val response = bbPort.consultarTransferencia(
                 identificadorTransferencia = identificadorTransferencia,
                 accessToken = requireNotNull(token.body?.accessToken),
-                header = id
+//                header = id
         )
         return ResponseEntity.ok(response)
     }

@@ -19,7 +19,7 @@ class AutenticacaoBBController(
     @GetMapping
     fun autenticar(): ResponseEntity<BBAutenticacaoResponseDto> {
         val headerBody = logClient.getHeader().body
-        val response = bbPort.autenticar(API.EXTRATO, headerBody!!.id)
+        val response = bbPort.autenticar(API.EXTRATO)
         return ResponseEntity.ok(response.body)
     }
 }

@@ -36,7 +36,7 @@ class BBTransferenciaStp4Schedule(
 
         try {
             isRunning = true
-            val headerBody = logClient.getHeader().body
+//            val headerBody = logClient.getHeader().body
             val remessas = repository.getRemessasEletronicasAtualizacoesTED()
 
             if (remessas.isEmpty()) {
@@ -46,12 +46,12 @@ class BBTransferenciaStp4Schedule(
 
             remessas.forEach {
                 logger.info("STEP 4: PROCESSANDO REMESSA ${it.identificadorTransferencia}")
-                val token = bbPort.autenticar(header = headerBody!!.id)
+                val token = bbPort.autenticar()
 
                 val transferencia = bbPort.consultarTransferencia(
                     identificadorTransferencia = it.identificadorTransferencia,
                     accessToken = requireNotNull(token.body?.accessToken),
-                    header = headerBody.id
+//                    header = headerBody.id
                 )
 
                 if (nonNull(transferencia)) {
@@ -63,7 +63,7 @@ class BBTransferenciaStp4Schedule(
                             transferencia = transferenciaEntity,
                             lote = transferenciaEntity.lote!!,
                             bbTransferencia = transferencia!!,
-                            header = headerBody.id
+//                            header = headerBody.id
                         )
                     }
                 }

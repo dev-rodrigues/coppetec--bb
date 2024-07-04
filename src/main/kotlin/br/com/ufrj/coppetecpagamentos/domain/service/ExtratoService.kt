@@ -47,7 +47,7 @@ class ExtratoService(
 
         val token = bbPort.autenticar(
             api = API.EXTRATO,
-            header = headerBody
+//            header = headerBody
         ).body?.accessToken!!
 
         var nextPage = 1

@@ -37,7 +37,7 @@ class LoteController(
         consultarLoteService.executar(
                 lote = lote,
                 step = 1,
-                header = id
+//                header = id
         )
         return ResponseEntity.ok().build()
     }

@@ -44,88 +44,88 @@ class BBTransferenciaStp2Schedule(
 
         try {
             val active = properties.schedule && togglePort.isEnabled(BB_TRANSFERENCIA_STP2_SCHEDULE)
-            val headerBody = logClient.getHeader().body
+//            val headerBody = logClient.getHeader().body
 
             if (active) {
                 logger.info("STEP 2: CONSULTAR LOTES PRIORITÁRIOS")
-                logClient.createLog(
-                    CreateLogRequestDto(
-                        header = headerBody!!.id,
-                        aplicacao = 1,
-                        classe = this::class.java.simpleName,
-                        metodo = "step2",
-                        parametros = "",
-                        usuarioCodigo = null,
-                        usuarioNome = null,
-                        criticalidade = 1,
-                        servico = 1,
-                        mensagemDeErro = "STEP 2: CONSULTAR LOTES PRIORITÁRIOS",
-                        stackTrace = null
-                    )
-                )
+//                logClient.createLog(
+//                    CreateLogRequestDto(
+//                        header = headerBody!!.id,
+//                        aplicacao = 1,
+//                        classe = this::class.java.simpleName,
+//                        metodo = "step2",
+//                        parametros = "",
+//                        usuarioCodigo = null,
+//                        usuarioNome = null,
+//                        criticalidade = 1,
+//                        servico = 1,
+//                        mensagemDeErro = "STEP 2: CONSULTAR LOTES PRIORITÁRIOS",
+//                        stackTrace = null
+//                    )
+//                )
 
                 SchedulerExecutionTracker.getInstance().recordExecutionStart(PRIORITY_PAYMENT_INQUIRY_PROCESS)
 
                 val lotes = bBLoteRepository.findLotesByEstadoRequisicao()
 
-                logClient.createLog(
-                    CreateLogRequestDto(
-                        header = headerBody.id,
-                        aplicacao = 1,
-                        classe = this::class.java.simpleName,
-                        metodo = "step2",
-                        parametros = "$lotes",
-                        usuarioCodigo = null,
-                        usuarioNome = null,
-                        criticalidade = 1,
-                        servico = 1,
-                        mensagemDeErro = "STEP 2: TOTAL DE LOTES PENDENTES DE CONSULTA ${lotes.size}",
-                        stackTrace = null
-                    )
-                )
+//                logClient.createLog(
+//                    CreateLogRequestDto(
+//                        header = headerBody.id,
+//                        aplicacao = 1,
+//                        classe = this::class.java.simpleName,
+//                        metodo = "step2",
+//                        parametros = "$lotes",
+//                        usuarioCodigo = null,
+//                        usuarioNome = null,
+//                        criticalidade = 1,
+//                        servico = 1,
+//                        mensagemDeErro = "STEP 2: TOTAL DE LOTES PENDENTES DE CONSULTA ${lotes.size}",
+//                        stackTrace = null
+//                    )
+//                )
 
                 logger.info("STEP 2: TOTAL DE LOTES PENDENTES DE CONSULTA {} ", lotes.size)
 
                 lotes.forEach {
 
-                    logClient.createLog(
-                        CreateLogRequestDto(
-                            header = headerBody.id,
-                            aplicacao = 1,
-                            classe = this::class.java.simpleName,
-                            metodo = "step2",
-                            parametros = "$it",
-                            usuarioCodigo = null,
-                            usuarioNome = null,
-                            criticalidade = 1,
-                            servico = 1,
-                            mensagemDeErro = "STEP 2: CONSULTANDO LOTE ${it.id}",
-                            stackTrace = null
-                        )
-                    )
+//                    logClient.createLog(
+//                        CreateLogRequestDto(
+//                            header = headerBody.id,
+//                            aplicacao = 1,
+//                            classe = this::class.java.simpleName,
+//                            metodo = "step2",
+//                            parametros = "$it",
+//                            usuarioCodigo = null,
+//                            usuarioNome = null,
+//                            criticalidade = 1,
+//                            servico = 1,
+//                            mensagemDeErro = "STEP 2: CONSULTANDO LOTE ${it.id}",
+//                            stackTrace = null
+//                        )
+//                    )
 
                     consultarLoteService.executar(
                         lote = it, step = 2,
-                        header = headerBody.id
+//                        header = headerBody.id
                     )
                 }
 
             } else {
-                logClient.createLog(
-                    CreateLogRequestDto(
-                        header = headerBody!!.id,
-                        aplicacao = 1,
-                        classe = this::class.java.simpleName,
-                        metodo = "step2",
-                        parametros = "",
-                        usuarioCodigo = null,
-                        usuarioNome = null,
-                        criticalidade = 3,
-                        servico = 1,
-                        mensagemDeErro = "STEP 2: CONSULTA DE LOTES PRIORITÁRIOS DESABILITADO",
-                        stackTrace = null
-                    )
-                )
+//                logClient.createLog(
+//                    CreateLogRequestDto(
+//                        header = headerBody!!.id,
+//                        aplicacao = 1,
+//                        classe = this::class.java.simpleName,
+//                        metodo = "step2",
+//                        parametros = "",
+//                        usuarioCodigo = null,
+//                        usuarioNome = null,
+//                        criticalidade = 3,
+//                        servico = 1,
+//                        mensagemDeErro = "STEP 2: CONSULTA DE LOTES PRIORITÁRIOS DESABILITADO",
+//                        stackTrace = null
+//                    )
+//                )
             }
         } finally {
             isRunning = false

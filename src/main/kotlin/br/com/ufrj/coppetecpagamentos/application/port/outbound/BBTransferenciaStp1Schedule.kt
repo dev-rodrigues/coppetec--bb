@@ -28,7 +28,7 @@ class BBTransferenciaStp1Schedule(
 ) {
 
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
-    private val parts: Int = 300
+    private val parts: Int = 1
     private var isRunning = false
 
     @Async
@@ -41,7 +41,7 @@ class BBTransferenciaStp1Schedule(
             return
         }
 
-        val headerBody = logClient.getHeader().body
+//        val headerBody = logClient.getHeader().body
 
         try {
             isRunning = true
@@ -50,159 +50,160 @@ class BBTransferenciaStp1Schedule(
 
             if (active) {
 
-                if (nonNull(headerBody)) {
+//                if (nonNull(headerBody)) {
 
-                    logClient.createLog(
-                        CreateLogRequestDto(
-                            header = headerBody?.id ?: 0,
-                            aplicacao = 4,
-                            classe = this::class.java.simpleName,
-                            metodo = "step1",
-                            parametros = "",
-                            usuarioCodigo = null,
-                            usuarioNome = null,
-                            criticalidade = 3,
-                            servico = 1,
-                            mensagemDeErro = "STEP 1: INICIO DO PROCESSO DE ENVIO DE TRANSFERÊNCIAS PENDENTES",
-                            stackTrace = null
-                        )
+//                    logClient.createLog(
+//                        CreateLogRequestDto(
+//                            header = headerBody?.id ?: 0,
+//                            aplicacao = 4,
+//                            classe = this::class.java.simpleName,
+//                            metodo = "step1",
+//                            parametros = "",
+//                            usuarioCodigo = null,
+//                            usuarioNome = null,
+//                            criticalidade = 3,
+//                            servico = 1,
+//                            mensagemDeErro = "STEP 1: INICIO DO PROCESSO DE ENVIO DE TRANSFERÊNCIAS PENDENTES",
+//                            stackTrace = null
+//                        )
+//                    )
+
+
+                val remessas = envioPendentePort.getEnvioPendenteDatabase()
+
+//                    logClient.createLog(
+//                        CreateLogRequestDto(
+//                            header = headerBody?.id ?: 0,
+//                            aplicacao = 4,
+//                            classe = this::class.java.simpleName,
+//                            metodo = "step1",
+//                            parametros = "",
+//                            usuarioCodigo = null,
+//                            usuarioNome = null,
+//                            criticalidade = 3,
+//                            servico = 1,
+//                            mensagemDeErro = "STEP 1: TOTAL DE REMESSAS PENDENTES DE ENVIO ${remessas.size}",
+//                            stackTrace = null
+//                        )
+//                    )
+
+                remessas.forEachIndexed { index, it ->
+
+//                        logClient.createLog(
+//                            CreateLogRequestDto(
+//                                header = headerBody!!.id,
+//                                aplicacao = 4,
+//                                classe = this::class.java.simpleName,
+//                                metodo = "step1",
+//                                parametros = "",
+//                                usuarioCodigo = null,
+//                                usuarioNome = null,
+//                                criticalidade = 3,
+//                                servico = 1,
+//                                mensagemDeErro = "STEP 1: PROCESSANDO REMESSA ${index + 1} DE ${remessas.size}",
+//                                stackTrace = null
+//                            )
+//                        )
+
+                    val transferencias = envioPendentePort.getTransferenciasPendente(
+                        contaFonte = it.contaOrigem!!,
+                        tipoPagamento = it.tipoPagamento!!
                     )
 
 
-                    val remessas = envioPendentePort.getEnvioPendenteDatabase()
+//                        logClient.createLog(
+//                            CreateLogRequestDto(
+//                                header = headerBody.id,
+//                                aplicacao = 4,
+//                                classe = this::class.java.simpleName,
+//                                metodo = "step1",
+//                                parametros = "",
+//                                usuarioCodigo = null,
+//                                usuarioNome = null,
+//                                criticalidade = 3,
+//                                servico = 1,
+//                                mensagemDeErro = "STEP 1: REMESSA ${index + 1} DE ${remessas.size} - TOTAL DE TRANSFERÊNCIAS ${transferencias.size}",
+//                                stackTrace = null
+//                            )
+//                        )
 
-                    logClient.createLog(
-                        CreateLogRequestDto(
-                            header = headerBody?.id ?: 0,
-                            aplicacao = 4,
-                            classe = this::class.java.simpleName,
-                            metodo = "step1",
-                            parametros = "",
-                            usuarioCodigo = null,
-                            usuarioNome = null,
-                            criticalidade = 3,
-                            servico = 1,
-                            mensagemDeErro = "STEP 1: TOTAL DE REMESSAS PENDENTES DE ENVIO ${remessas.size}",
-                            stackTrace = null
-                        )
-                    )
+                    val parts: List<List<TransferenciaPendenteDatabase>> = transferencias.chunked(parts)
 
-                    remessas.forEachIndexed { index, it ->
+//                        logClient.createLog(
+//                            CreateLogRequestDto(
+//                                header = headerBody.id,
+//                                aplicacao = 4,
+//                                classe = this::class.java.simpleName,
+//                                metodo = "step1",
+//                                parametros = "",
+//                                usuarioCodigo = null,
+//                                usuarioNome = null,
+//                                criticalidade = 3,
+//                                servico = 1,
+//                                mensagemDeErro = "STEP 1: REMESSA ${index + 1} DE ${remessas.size} - GERADO ${parts.size} PARTES DE TRANSFERÊNCIA",
+//                                stackTrace = null
+//                            )
+//                        )
 
-                        logClient.createLog(
-                            CreateLogRequestDto(
-                                header = headerBody!!.id,
-                                aplicacao = 4,
-                                classe = this::class.java.simpleName,
-                                metodo = "step1",
-                                parametros = "",
-                                usuarioCodigo = null,
-                                usuarioNome = null,
-                                criticalidade = 3,
-                                servico = 1,
-                                mensagemDeErro = "STEP 1: PROCESSANDO REMESSA ${index + 1} DE ${remessas.size}",
-                                stackTrace = null
-                            )
-                        )
+                    parts.forEachIndexed { indexPart, part ->
 
-                        val transferencias = envioPendentePort.getTransferenciasPendente(
-                            contaFonte = it.contaOrigem!!, tipoPagamento = it.tipoPagamento!!
-                        )
+//                            logClient.createLog(
+//                                CreateLogRequestDto(
+//                                    header = headerBody.id,
+//                                    aplicacao = 4,
+//                                    classe = this::class.java.simpleName,
+//                                    metodo = "step1",
+//                                    parametros = "",
+//                                    usuarioCodigo = null,
+//                                    usuarioNome = null,
+//                                    criticalidade = 3,
+//                                    servico = 1,
+//                                    mensagemDeErro = "STEP 1: REMESSA ${index + 1} DE ${remessas.size} - PROCESSANDO PARTE ${indexPart + 1} DE ${parts.size}",
+//                                    stackTrace = null
+//                                )
+//                            )
 
-
-                        logClient.createLog(
-                            CreateLogRequestDto(
-                                header = headerBody.id,
-                                aplicacao = 4,
-                                classe = this::class.java.simpleName,
-                                metodo = "step1",
-                                parametros = "",
-                                usuarioCodigo = null,
-                                usuarioNome = null,
-                                criticalidade = 3,
-                                servico = 1,
-                                mensagemDeErro = "STEP 1: REMESSA ${index + 1} DE ${remessas.size} - TOTAL DE TRANSFERÊNCIAS ${transferencias.size}",
-                                stackTrace = null
-                            )
-                        )
-
-                        val parts: List<List<TransferenciaPendenteDatabase>> = transferencias.chunked(parts)
-
-                        logClient.createLog(
-                            CreateLogRequestDto(
-                                header = headerBody.id,
-                                aplicacao = 4,
-                                classe = this::class.java.simpleName,
-                                metodo = "step1",
-                                parametros = "",
-                                usuarioCodigo = null,
-                                usuarioNome = null,
-                                criticalidade = 3,
-                                servico = 1,
-                                mensagemDeErro = "STEP 1: REMESSA ${index + 1} DE ${remessas.size} - GERADO ${parts.size} PARTES DE TRANSFERÊNCIA",
-                                stackTrace = null
-                            )
-                        )
-
-                        parts.forEachIndexed { indexPart, part ->
-
-                            logClient.createLog(
-                                CreateLogRequestDto(
-                                    header = headerBody.id,
-                                    aplicacao = 4,
-                                    classe = this::class.java.simpleName,
-                                    metodo = "step1",
-                                    parametros = "",
-                                    usuarioCodigo = null,
-                                    usuarioNome = null,
-                                    criticalidade = 3,
-                                    servico = 1,
-                                    mensagemDeErro = "STEP 1: REMESSA ${index + 1} DE ${remessas.size} - PROCESSANDO PARTE ${indexPart + 1} DE ${parts.size}",
-                                    stackTrace = null
-                                )
-                            )
-
-                            enviarLoteService.executar(it, part, headerBody.id)
-                        }
+                        enviarLoteService.executar(it, part)
                     }
                 }
-
-
-            } else {
-                logClient.createLog(
-                    CreateLogRequestDto(
-                        header = headerBody?.id ?: 0,
-                        aplicacao = 4,
-                        classe = this::class.java.simpleName,
-                        metodo = "step1",
-                        parametros = "",
-                        usuarioCodigo = null,
-                        usuarioNome = null,
-                        criticalidade = 3,
-                        servico = 1,
-                        mensagemDeErro = "STEP 1: ENVIO DE TRANSFERÊNCIAS PENDENTES DESABILITADO",
-                        stackTrace = null
-                    )
-                )
             }
+
+
+//            } else {
+//                logClient.createLog(
+//                    CreateLogRequestDto(
+//                        header = headerBody?.id ?: 0,
+//                        aplicacao = 4,
+//                        classe = this::class.java.simpleName,
+//                        metodo = "step1",
+//                        parametros = "",
+//                        usuarioCodigo = null,
+//                        usuarioNome = null,
+//                        criticalidade = 3,
+//                        servico = 1,
+//                        mensagemDeErro = "STEP 1: ENVIO DE TRANSFERÊNCIAS PENDENTES DESABILITADO",
+//                        stackTrace = null
+//                    )
+//                )
+//            }
         } finally {
             isRunning = false
             SchedulerExecutionTracker.getInstance().recordExecutionEnd(PAYMENT_SENDING_PROCESS)
-            logClient.createLog(
-                CreateLogRequestDto(
-                    header = headerBody?.id ?: 0,
-                    aplicacao = 4,
-                    classe = this::class.java.simpleName,
-                    metodo = "step1",
-                    parametros = "",
-                    usuarioCodigo = null,
-                    usuarioNome = null,
-                    criticalidade = 3,
-                    servico = 1,
-                    mensagemDeErro = "STEP 1: PROCESSO DE ENVIO DE TRANSFERÊNCIAS PENDENTES FINALIZADO",
-                    stackTrace = null
-                )
-            )
+//            logClient.createLog(
+//                CreateLogRequestDto(
+//                    header = headerBody?.id ?: 0,
+//                    aplicacao = 4,
+//                    classe = this::class.java.simpleName,
+//                    metodo = "step1",
+//                    parametros = "",
+//                    usuarioCodigo = null,
+//                    usuarioNome = null,
+//                    criticalidade = 3,
+//                    servico = 1,
+//                    mensagemDeErro = "STEP 1: PROCESSO DE ENVIO DE TRANSFERÊNCIAS PENDENTES FINALIZADO",
+//                    stackTrace = null
+//                )
+//            )
         }
     }
 }

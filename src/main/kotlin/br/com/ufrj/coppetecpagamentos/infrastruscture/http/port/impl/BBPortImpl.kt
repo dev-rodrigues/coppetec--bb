@@ -34,64 +34,65 @@ import java.util.regex.Pattern
 @Suppress("UNREACHABLE_CODE")
 @Component
 class BBPortImpl(
-        private val bBProperties: BBProperties,
-        private val client: RestTemplate,
-        private val proxy: RestTemplateProxy,
-        private val mapper: ObjectMapper,
-        private val logClient: LogClient,
+    private val bBProperties: BBProperties,
+    private val client: RestTemplate,
+    private val proxy: RestTemplateProxy,
+    private val mapper: ObjectMapper,
+    private val logClient: LogClient,
 ) : BBPort {
 
     private val logger = LoggerFactory.getLogger(BBPortImpl::class.java)
 
-    override fun autenticar(
-            api: API,
-            header: BigInteger,
-    ): ResponseEntity<BBAutenticacaoResponseDto> {
+    override fun autenticar(api: API): ResponseEntity<BBAutenticacaoResponseDto> {
         val response = proxy.execute(
-                {
-                    client.exchange(
-                            getURI(AUTENTICAR, emptyList(), emptyMap(), api),
-                            POST,
-                            getParameter(api),
-                            BBAutenticacaoResponseDto::class.java
-                    )
-                }, AUTENTICAR, header
+            {
+                client.exchange(
+                    getURI(AUTENTICAR, emptyList(), emptyMap(), api),
+                    POST,
+                    getParameter(api),
+                    BBAutenticacaoResponseDto::class.java
+                )
+            }, AUTENTICAR
         )
 
         return if (nonNull(response)) {
             response!!
         } else {
             logger.error("Erro ao autenticar")
-            logClient.createLog(
-                    CreateLogRequestDto(
-                            header = header,
-                            aplicacao = 1,
-                            classe = this::class.java.simpleName,
-                            metodo = "autenticar",
-                            parametros = "[${AUTENTICAR}, ${getParameter(api)}]",
-                            usuarioCodigo = null,
-                            usuarioNome = null,
-                            criticalidade = 1,
-                            servico = 1,
-                            mensagemDeErro = "Erro ao autenticar",
-                            stackTrace = null
-                    )
-            )
+//            logClient.createLog(
+//                    CreateLogRequestDto(
+//                            header = header,
+//                            aplicacao = 1,
+//                            classe = this::class.java.simpleName,
+//                            metodo = "autenticar",
+//                            parametros = "[${AUTENTICAR}, ${getParameter(api)}]",
+//                            usuarioCodigo = null,
+//                            usuarioNome = null,
+//                            criticalidade = 1,
+//                            servico = 1,
+//                            mensagemDeErro = "Erro ao autenticar",
+//                            stackTrace = null
+//                    )
+//            )
 
             throw RuntimeException("Erro ao autenticar")
         }
     }
 
-    override fun consultarLote(idLote: BigInteger, accessToken: String, header: BigInteger): ResponseEntity<BBConsultaLoteResponseDto>? {
+    override fun consultarLote(
+        idLote: BigInteger,
+        accessToken: String,
+//        header: BigInteger
+    ): ResponseEntity<BBConsultaLoteResponseDto>? {
         val response = proxy.execute(
-                {
-                    client.exchange(
-                            getURI(CONSULTAR_LOTE, listOf(idLote), emptyMap(), API.TRANSFERENCIA),
-                            GET,
-                            getParameter(accessToken),
-                            BBConsultaLoteResponseDto::class.java
-                    )
-                }, CONSULTAR_LOTE, header
+            {
+                client.exchange(
+                    getURI(CONSULTAR_LOTE, listOf(idLote), emptyMap(), API.TRANSFERENCIA),
+                    GET,
+                    getParameter(accessToken),
+                    BBConsultaLoteResponseDto::class.java
+                )
+            }, CONSULTAR_LOTE
         )
 
         return if (nonNull(response)) {
@@ -100,100 +101,102 @@ class BBPortImpl(
     }
 
     override fun consultarTransferencia(
-            identificadorTransferencia: BigInteger, accessToken: String, header: BigInteger,
+        identificadorTransferencia: BigInteger,
+        accessToken: String,
+//        header: BigInteger
     ): BBConsultaTransferenciaResponseDto? {
         val response = proxy.execute(
-                {
-                    client.exchange(
-                            getURI(CONSULTAR_TRANSFERENCIA, listOf(identificadorTransferencia), emptyMap(), API.TRANSFERENCIA),
-                            GET,
-                            getParameter(accessToken),
-                            String::class.java
-                    )
-                }, CONSULTAR_TRANSFERENCIA, header
+            {
+                client.exchange(
+                    getURI(CONSULTAR_TRANSFERENCIA, listOf(identificadorTransferencia), emptyMap(), API.TRANSFERENCIA),
+                    GET,
+                    getParameter(accessToken),
+                    String::class.java
+                )
+            }, CONSULTAR_TRANSFERENCIA
         )
 
         return if (nonNull(response)) {
             return formatBBConsultaTransferenciaResponseDto(response!!)
         } else {
-            logClient.createLog(
-                    CreateLogRequestDto(
-                            header = header,
-                            aplicacao = 1,
-                            classe = this::class.java.simpleName,
-                            metodo = "consultarTransferencia",
-                            parametros = "[${identificadorTransferencia}, $accessToken]",
-                            usuarioCodigo = null,
-                            usuarioNome = null,
-                            criticalidade = 1,
-                            servico = 1,
-                            mensagemDeErro = "Erro ao consultar transferencia $identificadorTransferencia no banco do Brasil",
-                            stackTrace = null
-                    )
-            )
+//            logClient.createLog(
+//                    CreateLogRequestDto(
+//                            header = header,
+//                            aplicacao = 1,
+//                            classe = this::class.java.simpleName,
+//                            metodo = "consultarTransferencia",
+//                            parametros = "[${identificadorTransferencia}, $accessToken]",
+//                            usuarioCodigo = null,
+//                            usuarioNome = null,
+//                            criticalidade = 1,
+//                            servico = 1,
+//                            mensagemDeErro = "Erro ao consultar transferencia $identificadorTransferencia no banco do Brasil",
+//                            stackTrace = null
+//                    )
+//            )
             logger.error("Erro ao consultar transferencia")
             return null
         }
     }
 
     override fun consultarExtrato(
-            numeroPaginaSolicitacao: Int?,
-            agencia: String,
-            conta: String,
-            token: String,
-            dataInicioSolicitacao: String,
-            dataFimSolicitacao: String,
-            headerBody: BigInteger,
+        numeroPaginaSolicitacao: Int?,
+        agencia: String,
+        conta: String,
+        token: String,
+        dataInicioSolicitacao: String,
+        dataFimSolicitacao: String,
+        headerBody: BigInteger
     ): ResponseEntity<BBConsultaExtratoResponseDto> {
         val response = proxy.execute(
-                {
-                    client.exchange(
-                            getURI(
-                                    CONSULTAR_EXTRATO, listOf(), mapOf(
-                                    "agencia" to agencia,
-                                    "conta" to conta,
-                                    "dataInicioSolicitacao" to dataInicioSolicitacao,
-                                    "dataFimSolicitacao" to dataFimSolicitacao,
-                                    "numeroPaginaSolicitacao" to numeroPaginaSolicitacao.toString(),
-                            ), API.EXTRATO
-                            ),
-                            GET,
-                            getParameter(token),
-                            BBConsultaExtratoResponseDto::class.java
-                    )
-                }, CONSULTAR_EXTRATO, headerBody
+            {
+                client.exchange(
+                    getURI(
+                        CONSULTAR_EXTRATO, listOf(), mapOf(
+                            "agencia" to agencia,
+                            "conta" to conta,
+                            "dataInicioSolicitacao" to dataInicioSolicitacao,
+                            "dataFimSolicitacao" to dataFimSolicitacao,
+                            "numeroPaginaSolicitacao" to numeroPaginaSolicitacao.toString(),
+                        ), API.EXTRATO
+                    ),
+                    GET,
+                    getParameter(token),
+                    BBConsultaExtratoResponseDto::class.java
+                )
+            }, CONSULTAR_EXTRATO
         )
 
         return if (nonNull(response)) {
             response!!
         } else {
             throw BadRequestExtratoException(
-                    message = "Erro ao consultar extrato",
-                    ag = agencia,
-                    cc = conta,
-                    de = dataInicioSolicitacao,
-                    ate = dataFimSolicitacao
+                message = "Erro ao consultar extrato",
+                ag = agencia,
+                cc = conta,
+                de = dataInicioSolicitacao,
+                ate = dataFimSolicitacao
             )
         }
     }
 
     override fun transferir(
-            loteDeEnvio: BBTransferirRequest, token: String, headerBody: BigInteger,
+        loteDeEnvio: BBTransferirRequest, token: String,
     ): ResponseEntity<BBTransferenciaResponseDto>? {
         return proxy.execute(
-                {
-                    client.exchange(
-                            getURI(ENVIAR_LOTE, emptyList(), emptyMap(), API.TRANSFERENCIA),
-                            POST,
-                            getParameter(loteDeEnvio, token),
-                            BBTransferenciaResponseDto::class.java
-                    )
-                }, loteDeEnvio, headerBody
+            {
+                client.exchange(
+                    getURI(ENVIAR_LOTE, emptyList(), emptyMap(), API.TRANSFERENCIA),
+                    POST,
+                    getParameter(loteDeEnvio, token),
+                    BBTransferenciaResponseDto::class.java
+                )
+            }, loteDeEnvio
         )
     }
 
     private fun formatBBConsultaTransferenciaResponseDto(
-            response: ResponseEntity<String>,
+        response: ResponseEntity<String>,
     ): BBConsultaTransferenciaResponseDto {
         val json = response.body
 
@@ -255,17 +258,17 @@ class BBPortImpl(
                 val dataFimSolicitacao = maps["dataFimSolicitacao"]
 
                 val uriAux = UriComponentsBuilder.fromHttpUrl(endpoint)
-                        .path("/extratos/v1/conta-corrente/agencia/{agencia}/conta/{conta}")
-                        .buildAndExpand(mapOf("agencia" to agencia, "conta" to conta)).toUriString()
+                    .path("/extratos/v1/conta-corrente/agencia/{agencia}/conta/{conta}")
+                    .buildAndExpand(mapOf("agencia" to agencia, "conta" to conta)).toUriString()
 
                 val url = buildUri(
-                        endpoint = uriAux, parameters = if (numeroPaginaSolicitacao != null) {
-                    mapOf(
+                    endpoint = uriAux, parameters = if (numeroPaginaSolicitacao != null) {
+                        mapOf(
                             Pair("numeroPaginaSolicitacao", numeroPaginaSolicitacao),
                             Pair("dataInicioSolicitacao", dataInicioSolicitacao!!),
                             Pair("dataFimSolicitacao", dataFimSolicitacao!!)
-                    )
-                } else emptyMap(), api = api
+                        )
+                    } else emptyMap(), api = api
                 )
                 logger.info("URL DE CONSULTA DO EXTRATO: {}", url)
                 return url
@@ -286,7 +289,7 @@ class BBPortImpl(
         }
 
         val uri = UriComponentsBuilder.fromUriString(endpoint)
-                .queryParam(bBProperties.ambiente, bBProperties.autenticacaoTransferencia.chaveAplicacao)
+            .queryParam(bBProperties.ambiente, bBProperties.autenticacaoTransferencia.chaveAplicacao)
 
         if (nonNull(parameters) && parameters.isNotEmpty()) {
             val formated = uri.buildAndExpand(parameters[0].toString()).toString()
@@ -309,7 +312,7 @@ class BBPortImpl(
 
         when (api) {
             API.TRANSFERENCIA -> params.add(
-                    bBProperties.ambiente, bBProperties.autenticacaoTransferencia.chaveAplicacao
+                bBProperties.ambiente, bBProperties.autenticacaoTransferencia.chaveAplicacao
             )
 
             API.EXTRATO -> params.add(bBProperties.ambiente, bBProperties.autenticacaoExtrato.chaveAplicacao)
@@ -327,30 +330,31 @@ class BBPortImpl(
 
     private fun getParameter(api: API = API.TRANSFERENCIA): HttpEntity<MultiValueMap<String, String>?> {
         return HttpEntity<MultiValueMap<String, String>?>(
-                null, getHeader(
+            null, getHeader(
                 typeHeader = AUTENTICACAO, token = null, api = api
-        )
+            )
         )
     }
 
     private fun getParameter(token: String): HttpEntity<MultiValueMap<String, String>?> {
         return HttpEntity<MultiValueMap<String, String>?>(
-                null, getHeader(
+            null, getHeader(
                 CONSULTA_AUTENTICADO, token
-        )
+            )
         )
     }
 
     private fun getParameter(@NonNull body: Any, @NonNull token: String): HttpEntity<Any> {
         return HttpEntity<Any>(
-                Gson().toJson(body), getHeader(
+            Gson().toJson(body),
+            getHeader(
                 CONSULTA_AUTENTICADO, token
-        )
+            )
         )
     }
 
     private fun getHeader(
-            typeHeader: TipoHeader, token: String?, api: API = API.TRANSFERENCIA,
+        typeHeader: TipoHeader, token: String?, api: API = API.TRANSFERENCIA,
     ): HttpHeaders {
         val header = HttpHeaders()
         if (typeHeader == AUTENTICACAO) {

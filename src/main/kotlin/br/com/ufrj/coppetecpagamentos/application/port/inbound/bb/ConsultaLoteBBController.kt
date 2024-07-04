@@ -18,9 +18,9 @@ class ConsultaLoteBBController(
 ) {
     @GetMapping("/{idLote}")
     fun get(@PathVariable idLote: BigInteger): ResponseEntity<BBConsultaLoteResponseDto> {
-        val id = logClient.getHeader().body!!.id
-        val token = bbPort.autenticar(header = id)
-        val response = bbPort.consultarLote(idLote, requireNotNull(token.body?.accessToken), id)
+//        val id = logClient.getHeader().body!!.id
+        val token = bbPort.autenticar()
+        val response = bbPort.consultarLote(idLote, requireNotNull(token.body?.accessToken))
         return ResponseEntity.ok(response?.body)
     }
 }
