@@ -66,13 +66,15 @@ class BBConsultarExtrato(
                                     dataFimSolicitacao = conta.consultaPeriodoAte!!,
                                 )
 
-                            extratoService.register(
-                                consulta = conta,
-                                response = result,
-                            )
 
-                            meterRegistry.counter("bb.consultar.extrato", "status", "success").increment()
+                            if (result != null) {
+                                extratoService.register(
+                                    consulta = conta,
+                                    response = result,
+                                )
 
+                                meterRegistry.counter("bb.consultar.extrato", "status", "success").increment()
+                            }
 
                         } catch (e: BadRequestExtratoException) {
                             extratoService.register(conta, null)

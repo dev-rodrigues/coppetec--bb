@@ -99,13 +99,6 @@ class BBConsultarExtratoTest {
     @Test
     fun `should not execute register when extratoService returned null`() {
         every {
-            logClient.getHeader()
-        } returns ResponseEntity.ok().body(LogHeaderDto(
-                id = ONE,
-                dataHora = "2021-09-01T00:00:00Z"
-        ))
-
-        every {
             togglePort.isEnabled(any())
         } returns false
 
