@@ -42,33 +42,16 @@ class ExtratoService(
         conta: String,
         dataInicioSolicitacao: String,
         dataFimSolicitacao: String,
-        headerBody: BigInteger,
     ): BBConsultaExtratoResponseDto? {
 
         val token = bbPort.autenticar(
             api = API.EXTRATO,
-//            header = headerBody
         ).body?.accessToken!!
 
         var nextPage = 1
         var extrato: BBConsultaExtratoResponseDto? = null
 
         while (nextPage != 0) {
-
-            logClient.createLog(
-                CreateLogRequestDto(
-                    header = headerBody,
-                    aplicacao = 1,
-                    classe = this::class.java.simpleName,
-                    metodo = "getExtrato",
-                    parametros = "[$agencia, $conta, $dataInicioSolicitacao, $dataFimSolicitacao, $headerBody]",
-                    usuarioCodigo = null,
-                    usuarioNome = null,
-                    criticalidade = 1,
-                    servico = 1,
-                    mensagemDeErro = "CONSULTANDO EXTRATO DE $agencia, $conta, $dataInicioSolicitacao, $dataFimSolicitacao",
-                )
-            )
 
             val response = bbPort.consultarExtrato(
                 agencia = agencia,
@@ -77,22 +60,6 @@ class ExtratoService(
                 numeroPaginaSolicitacao = nextPage,
                 dataInicioSolicitacao = dataInicioSolicitacao,
                 dataFimSolicitacao = dataFimSolicitacao,
-                headerBody = headerBody
-            )
-
-            logClient.createLog(
-                CreateLogRequestDto(
-                    header = headerBody,
-                    aplicacao = 1,
-                    classe = this::class.java.simpleName,
-                    metodo = "getExtrato",
-                    parametros = "[$agencia, $conta, $dataInicioSolicitacao, $dataFimSolicitacao, $headerBody]",
-                    usuarioCodigo = null,
-                    usuarioNome = null,
-                    criticalidade = 1,
-                    servico = 1,
-                    mensagemDeErro = "EXTRATO DE $agencia, $conta, $dataInicioSolicitacao, $dataFimSolicitacao CONSULTADO COM SUCESSO: $response",
-                )
             )
 
             if (extrato != null) {
@@ -116,7 +83,6 @@ class ExtratoService(
     fun register(
         consulta: BBContasAtivas,
         response: BBConsultaExtratoResponseDto?,
-        headerBody: BigInteger,
     ) {
         val transactionTemplate = TransactionTemplate(transactionManager)
 
@@ -150,14 +116,13 @@ class ExtratoService(
 
                         val movimento = response.listaLancamento.map { lancamento ->
 
-                            val dataMovimento = DateUtil.formatDate(lancamento.dataLancamento)
+                            val dataMovimento = DateUtil.formatDate(lancamento.dataLancamento.toString())
                             logger.info("DATA MOVIMENTO: $dataMovimento")
 
                             val dbDate = DateUtil.formatDate(consulta.consultaPeriodoAte)
 
-                            if (dataMovimento != null &&
-                                (dataMovimento.toLocalDate().isBefore(dbDate.toLocalDate()) ||
-                                        dataMovimento.toLocalDate().isEqual(dbDate.toLocalDate()))
+                            if (dataMovimento.toLocalDate().isBefore(dbDate.toLocalDate()) ||
+                                dataMovimento.toLocalDate().isEqual(dbDate.toLocalDate())
                             ) {
 
                                 ConciliacaoBancariaMovimentoEntity(
@@ -200,8 +165,6 @@ class ExtratoService(
                             } else {
                                 null
                             }
-
-
                         }
 
                         movimentoEntityRepository.saveAll(

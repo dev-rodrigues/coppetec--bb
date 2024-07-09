@@ -17,7 +17,6 @@ import java.util.concurrent.CompletableFuture.runAsync
 class ConsultarExtratoBBController(
         private val bBConsultarExtrato: BBConsultarExtrato,
         private val extratoService: ExtratoService,
-        private val logClient: LogClient,
 ) {
 
     @PostMapping
@@ -38,7 +37,6 @@ class ConsultarExtratoBBController(
             @PathVariable ate: String,
     ): ResponseEntity<BBConsultaExtratoResponseDto?> {
 
-        val id = logClient.getHeader().body!!.id
 
         return ResponseEntity.ok(
                 extratoService.getExtrato(
@@ -46,7 +44,6 @@ class ConsultarExtratoBBController(
                         conta = cc,
                         dataInicioSolicitacao = de,
                         dataFimSolicitacao = ate,
-                        headerBody = id
                 )
         )
     }

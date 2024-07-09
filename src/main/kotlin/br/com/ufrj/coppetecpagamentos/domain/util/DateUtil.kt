@@ -4,7 +4,9 @@ import java.math.BigInteger
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.LocalTime
 import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
 
 object DateUtil {
     val formatter: DateTimeFormatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME
@@ -23,8 +25,15 @@ object DateUtil {
     }
 
     fun formatDate(dbDate: String): LocalDateTime {
+        val formattedDateString = if (dbDate.length == 7) {
+            "0$dbDate"
+        } else {
+            dbDate
+        }
+
         val formatter = DateTimeFormatter.ofPattern("ddMMyyyy")
-        val date = LocalDate.parse(dbDate, formatter)
-        return date.atStartOfDay()
+        val localDate = LocalDate.parse(formattedDateString, formatter)
+        val localTime = LocalTime.MIDNIGHT
+        return LocalDateTime.of(localDate, localTime)
     }
 }

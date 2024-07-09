@@ -1,6 +1,7 @@
 package br.com.ufrj.coppetecpagamentos.domain.util
 
 import io.mockk.junit5.MockKExtension
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.extension.ExtendWith
@@ -60,4 +61,29 @@ class DateUtilTest {
         )
         assert(response == expected)
     }
+
+    @Test
+    fun `formatDate should handle 8 digit date correctly`() {
+        val input = "25012024"
+        val expected = LocalDateTime.of(2024, 1, 25, 0, 0)
+        val result = DateUtil.formatDate(input)
+        Assertions.assertEquals(expected, result)
+    }
+
+    @Test
+    fun `formatDate should handle 7 digit date correctly by prepending zero`() {
+        val input = "1012024"
+        val expected = LocalDateTime.of(2024, 1, 1, 0, 0)
+        val result = DateUtil.formatDate(input)
+        Assertions.assertEquals(expected, result)
+    }
+
+    @Test
+    fun `other formatDate should handle 7 digit date correctly by prepending zero`() {
+        val input = "8072024"
+        val expected = LocalDateTime.of(2024, 7, 8, 0, 0)
+        val result = DateUtil.formatDate(input)
+        Assertions.assertEquals(expected, result)
+    }
+
 }

@@ -5,7 +5,6 @@ import br.com.ufrj.coppetecpagamentos.domain.property.ScheduleProperties
 import br.com.ufrj.coppetecpagamentos.domain.service.ExtratoService
 import br.com.ufrj.coppetecpagamentos.domain.singleton.ProcessType
 import br.com.ufrj.coppetecpagamentos.domain.singleton.SchedulerExecutionTracker
-import br.com.ufrj.coppetecpagamentos.fixture.getBBConsultaExtratoResponseDto
 import br.com.ufrj.coppetecpagamentos.fixture.getBBContasAtivas
 import br.com.ufrj.coppetecpagamentos.infrastruscture.client.LogClient
 import br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.BBContasAtivasRepository
@@ -137,13 +136,13 @@ class BBConsultarExtratoTest {
         }
 
         every {
-            extratoService.getExtrato(any(), any(), any(), any(), ONE)
+            extratoService.getExtrato(any(), any(), any(), any())
         } returns null
 
         service.getExtrato()
 
         verify(exactly = 0) {
-            extratoService.register(any(), any(), any())
+            extratoService.register(any(), any())
         }
     }
 

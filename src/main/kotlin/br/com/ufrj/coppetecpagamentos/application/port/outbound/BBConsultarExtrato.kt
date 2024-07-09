@@ -43,28 +43,12 @@ class BBConsultarExtrato(
 
         try {
             isRunning = true
-            val active = properties.schedule && togglePort.isEnabled(BB_EXTRATO_SCHEDULE)
-            val headerBody = logClient.getHeader().body
+            val active = true //properties.schedule && togglePort.isEnabled(BB_EXTRATO_SCHEDULE)
 
             if (active) {
                 SchedulerExecutionTracker.getInstance().recordExecutionStart(BANK_STATEMENT_INQUIRY_PROCESS)
 
                 val contas = bBContasAtivasRepository.getContas()
-
-                logClient.createLog(
-                    CreateLogRequestDto(
-                        header = headerBody!!.id,
-                        aplicacao = 1,
-                        classe = this::class.java.simpleName,
-                        metodo = "getExtrato",
-                        parametros = "$contas",
-                        usuarioCodigo = null,
-                        usuarioNome = null,
-                        criticalidade = 1,
-                        servico = 1,
-                        mensagemDeErro = "CONSULTANDO EXTRATO DE ${contas.size} CONTAS",
-                    )
-                )
 
                 log.info("CONSULTANDO EXTRATO DE ${contas.size} CONTAS")
 
@@ -72,20 +56,6 @@ class BBConsultarExtrato(
 
                     contas.forEachIndexed { index, conta ->
                         log.info("CONSULTANDO EXTRATO DA CONTA ${index + 1} DE ${contas.size}")
-                        logClient.createLog(
-                            CreateLogRequestDto(
-                                header = headerBody.id,
-                                aplicacao = 1,
-                                classe = this::class.java.simpleName,
-                                metodo = "getExtrato",
-                                parametros = "$conta",
-                                usuarioCodigo = null,
-                                usuarioNome = null,
-                                criticalidade = 1,
-                                servico = 1,
-                                mensagemDeErro = "CONSULTANDO EXTRATO DA CONTA ${index + 1} DE ${contas.size}",
-                            )
-                        )
 
                         try {
                             val result = extratoService
@@ -94,20 +64,18 @@ class BBConsultarExtrato(
                                     conta = conta.contaCorrenteSemDv!!,
                                     dataInicioSolicitacao = conta.consultaPeriodoDe!!,
                                     dataFimSolicitacao = conta.consultaPeriodoAte!!,
-                                    headerBody = headerBody.id,
                                 )
 
                             extratoService.register(
                                 consulta = conta,
                                 response = result,
-                                headerBody = headerBody.id
                             )
 
                             meterRegistry.counter("bb.consultar.extrato", "status", "success").increment()
 
 
                         } catch (e: BadRequestExtratoException) {
-                            extratoService.register(conta, null, headerBody.id)
+                            extratoService.register(conta, null)
 
                         } catch (e: Exception) {
 

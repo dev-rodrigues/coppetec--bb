@@ -38,6 +38,5 @@ interface BBPort {
             token: String,
             dataInicioSolicitacao: String,
             dataFimSolicitacao: String,
-            headerBody: BigInteger,
     ): ResponseEntity<BBConsultaExtratoResponseDto>
 }
