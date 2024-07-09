@@ -25,7 +25,7 @@ class BBTransferenciaStp2Schedule(
 ) {
 
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
-    private var isRunning = true
+    private var isRunning = false
 
     companion object {
         const val TIME_ZONE = "America/Sao_Paulo"
