@@ -1,5 +1,5 @@
 enable:
-  schedule: false
+  schedule: true
 
 spring:
   datasource:
