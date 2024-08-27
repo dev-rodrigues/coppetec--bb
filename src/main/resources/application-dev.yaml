@@ -13,7 +13,6 @@ spring:
         dialect: org.hibernate.dialect.SQLServer2008Dialect
         show_sql: false
         format_sql: false
-#        use_sql_comments: true
 
 bb:
   ambiente: gw-dev-app-key

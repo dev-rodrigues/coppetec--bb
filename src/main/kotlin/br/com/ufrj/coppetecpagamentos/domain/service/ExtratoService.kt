@@ -2,10 +2,8 @@ package br.com.ufrj.coppetecpagamentos.domain.service
 
 import br.com.ufrj.coppetecpagamentos.domain.common.formatarData
 import br.com.ufrj.coppetecpagamentos.domain.model.API
-import br.com.ufrj.coppetecpagamentos.domain.model.CreateLogRequestDto
 import br.com.ufrj.coppetecpagamentos.domain.util.ContaUtil
 import br.com.ufrj.coppetecpagamentos.domain.util.DateUtil
-import br.com.ufrj.coppetecpagamentos.infrastruscture.client.LogClient
 import br.com.ufrj.coppetecpagamentos.infrastruscture.http.dto.response.BBConsultaExtratoResponseDto
 import br.com.ufrj.coppetecpagamentos.infrastruscture.http.port.BBPort
 import br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.ConciliacaoBancariaImportacaoEntityRepository
@@ -31,7 +29,6 @@ class ExtratoService(
     private val conciliacaoRepository: ConciliacaoBancariaImportacaoEntityRepository,
     private val movimentoEntityRepository: ConciliacaoBancariaMovimentoEntityRepository,
     private val transactionManager: PlatformTransactionManager,
-    private val logClient: LogClient,
 ) {
 
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)

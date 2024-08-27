@@ -1,13 +1,11 @@
 package br.com.ufrj.coppetecpagamentos.application.port.outbound
 
 import br.com.ufrj.coppetecpagamentos.domain.exception.BadRequestExtratoException
-import br.com.ufrj.coppetecpagamentos.domain.model.CreateLogRequestDto
 import br.com.ufrj.coppetecpagamentos.domain.model.Toggle.BB_EXTRATO_SCHEDULE
 import br.com.ufrj.coppetecpagamentos.domain.property.ScheduleProperties
 import br.com.ufrj.coppetecpagamentos.domain.service.ExtratoService
 import br.com.ufrj.coppetecpagamentos.domain.singleton.ProcessType.BANK_STATEMENT_INQUIRY_PROCESS
 import br.com.ufrj.coppetecpagamentos.domain.singleton.SchedulerExecutionTracker
-import br.com.ufrj.coppetecpagamentos.infrastruscture.client.LogClient
 import br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.BBContasAtivasRepository
 import br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.port.TogglePort
 import io.micrometer.core.instrument.MeterRegistry
@@ -24,7 +22,6 @@ class BBConsultarExtrato(
     private val meterRegistry: MeterRegistry,
     private val togglePort: TogglePort,
     private val properties: ScheduleProperties,
-    private val logClient: LogClient,
 ) {
 
     private val log: Logger = LoggerFactory.getLogger(this::class.java)

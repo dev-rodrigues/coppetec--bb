@@ -1,12 +1,10 @@
 package br.com.ufrj.coppetecpagamentos.application.port.outbound
 
-import br.com.ufrj.coppetecpagamentos.domain.model.LogHeaderDto
 import br.com.ufrj.coppetecpagamentos.domain.property.ScheduleProperties
 import br.com.ufrj.coppetecpagamentos.domain.service.ExtratoService
 import br.com.ufrj.coppetecpagamentos.domain.singleton.ProcessType
 import br.com.ufrj.coppetecpagamentos.domain.singleton.SchedulerExecutionTracker
 import br.com.ufrj.coppetecpagamentos.fixture.getBBContasAtivas
-import br.com.ufrj.coppetecpagamentos.infrastruscture.client.LogClient
 import br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.BBContasAtivasRepository
 import br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.port.TogglePort
 import io.micrometer.core.instrument.MeterRegistry
@@ -14,12 +12,9 @@ import io.mockk.every
 import io.mockk.junit5.MockKExtension
 import io.mockk.justRun
 import io.mockk.mockk
+import io.mockk.verify
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import io.mockk.verify
-import org.springframework.http.ResponseEntity
-import java.math.BigInteger
-import java.math.BigInteger.ONE
 
 @ExtendWith(MockKExtension::class)
 class BBConsultarExtratoTest {
@@ -30,7 +25,6 @@ class BBConsultarExtratoTest {
     private val togglePort: TogglePort = mockk()
     private val properties: ScheduleProperties = mockk()
     private val executionTracker: SchedulerExecutionTracker = mockk()
-    private val logClient: LogClient = mockk()
 
     private val service = BBConsultarExtrato(
             bBContasAtivasRepository = bBContasAtivasRepository,
@@ -38,7 +32,6 @@ class BBConsultarExtratoTest {
             meterRegistry = meterRegistry,
             togglePort = togglePort,
             properties = properties,
-            logClient = logClient
     )
 
     @Test
@@ -122,10 +115,6 @@ class BBConsultarExtratoTest {
 
         justRun {
             meterRegistry.counter(any(), any(), any()).increment()
-        }
-
-        justRun {
-            logClient.createLog(any())
         }
 
         every {

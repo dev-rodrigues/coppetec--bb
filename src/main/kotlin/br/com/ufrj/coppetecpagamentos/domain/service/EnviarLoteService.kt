@@ -1,7 +1,5 @@
 package br.com.ufrj.coppetecpagamentos.domain.service
 
-import br.com.ufrj.coppetecpagamentos.domain.model.CreateLogRequestDto
-import br.com.ufrj.coppetecpagamentos.infrastruscture.client.LogClient
 import br.com.ufrj.coppetecpagamentos.infrastruscture.http.dto.request.BBTransferenciaRequest
 import br.com.ufrj.coppetecpagamentos.infrastruscture.http.dto.request.BBTransferirRequest
 import br.com.ufrj.coppetecpagamentos.infrastruscture.http.port.BBPort
@@ -21,7 +19,6 @@ class EnviarLoteService(
     private val bBTransferenciaEntityRepository: BBTransferenciaEntityRepository,
     private val bBTransferenciaErroEntityRepository: BBTransferenciaErroEntityRepository,
     private val bbPort: BBPort,
-    private val logClient: LogClient,
 ) {
 
     private val logger: Logger = LoggerFactory.getLogger(this.javaClass)
@@ -29,7 +26,6 @@ class EnviarLoteService(
     fun executar(
         loteEnvioPendenteDatabase: LoteEnvioPendenteDatabase,
         transferencias: List<TransferenciaPendenteDatabase>,
-//        headerBody: BigInteger,
     ) {
 
         val lote = bBLoteRepository.save(
@@ -38,41 +34,7 @@ class EnviarLoteService(
             )
         )
 
-//        logClient.createLog(
-//            CreateLogRequestDto(
-//                header = headerBody,
-//                aplicacao = 4,
-//                classe = this::class.java.simpleName,
-//                metodo = "executar",
-//                parametros = "[${loteEnvioPendenteDatabase}, ${transferencias}, ${headerBody}]",
-//                usuarioCodigo = null,
-//                usuarioNome = null,
-//                criticalidade = 3,
-//                servico = 1,
-//                mensagemDeErro = "STEP 1: LOTE CRIADO COM ID ${lote.id!!}",
-//                stackTrace = null
-//            )
-//        )
-
-
         val loteDeEnvio = BBTransferirRequest.mapLoteRequest(loteEnvioPendenteDatabase, lote)
-
-//        logClient.createLog(
-//            CreateLogRequestDto(
-//                header = headerBody,
-//                aplicacao = 4,
-//                classe = this::class.java.simpleName,
-//                metodo = "executar",
-//                parametros = "[${loteDeEnvio}]",
-//                usuarioCodigo = null,
-//                usuarioNome = null,
-//                criticalidade = 3,
-//                servico = 1,
-//                mensagemDeErro = "STEP 1: LOTE ${lote.id} PREPARADO PARA ENVIO $loteDeEnvio",
-//                stackTrace = null
-//            )
-//        )
-
 
         val dbTransferencias: MutableList<BBTransferenciaEntity> = mutableListOf()
 
@@ -92,39 +54,7 @@ class EnviarLoteService(
             loteDeEnvio.listaTransferencias += t
         }
 
-//        logClient.createLog(
-//            CreateLogRequestDto(
-//                header = headerBody,
-//                aplicacao = 4,
-//                classe = this::class.java.simpleName,
-//                metodo = "executar",
-//                parametros = "[${dbTransferencias}]",
-//                usuarioCodigo = null,
-//                usuarioNome = null,
-//                criticalidade = 3,
-//                servico = 1,
-//                mensagemDeErro = "STEP 1: lote ${lote.id} com ${dbTransferencias.size} transferências",
-//                stackTrace = null
-//            )
-//        )
-
         val token = bbPort.autenticar().body?.accessToken
-
-//        logClient.createLog(
-//            CreateLogRequestDto(
-//                header = headerBody,
-//                aplicacao = 4,
-//                classe = this::class.java.simpleName,
-//                metodo = "executar",
-//                parametros = "[${token}]",
-//                usuarioCodigo = null,
-//                usuarioNome = null,
-//                criticalidade = 3,
-//                servico = 1,
-//                mensagemDeErro = "STEP 1: lote ${lote.id} TOKEN BB OBTIDO COM SUCESSO, INICIANDO ENVIO DO LOTE",
-//                stackTrace = null
-//            )
-//        )
 
         val response = bbPort.transferir(loteDeEnvio, token!!)
 
@@ -133,39 +63,7 @@ class EnviarLoteService(
 
             bBLoteRepository.save(lote.atualizarBBLoteEntityComResposta(body))
 
-//            logClient.createLog(
-//                CreateLogRequestDto(
-//                    header = headerBody,
-//                    aplicacao = 4,
-//                    classe = this::class.java.simpleName,
-//                    metodo = "executar",
-//                    parametros = "[${body}]",
-//                    usuarioCodigo = null,
-//                    usuarioNome = null,
-//                    criticalidade = 3,
-//                    servico = 1,
-//                    mensagemDeErro = "STEP 1: lote ${lote.id} ATUALIZADO COM RESPOSTA DO BANCO DO BRASIL",
-//                    stackTrace = null
-//                )
-//            )
-
             body.transferencias.forEach { transferenciaBB ->
-
-//                logClient.createLog(
-//                    CreateLogRequestDto(
-//                        header = headerBody,
-//                        aplicacao = 4,
-//                        classe = this::class.java.simpleName,
-//                        metodo = "executar",
-//                        parametros = "[${transferenciaBB}]",
-//                        usuarioCodigo = null,
-//                        usuarioNome = null,
-//                        criticalidade = 3,
-//                        servico = 1,
-//                        mensagemDeErro = "STEP 1: lote ${lote.id} transferência ${transferenciaBB.documentoDebito} consultando no banco de dados",
-//                        stackTrace = null
-//                    )
-//                )
 
                 val dbTransferencia = bBTransferenciaEntityRepository
                     .findByLoteAndLancamento(
@@ -174,41 +72,7 @@ class EnviarLoteService(
                     )
 
 
-                bBTransferenciaEntityRepository.save(
-                    dbTransferencia.atualizarRegistro(transferenciaBB)
-                )
-
-//                logClient.createLog(
-//                    CreateLogRequestDto(
-//                        header = headerBody,
-//                        aplicacao = 4,
-//                        classe = this::class.java.simpleName,
-//                        metodo = "executar",
-//                        parametros = "[${dbTransferencia}]",
-//                        usuarioCodigo = null,
-//                        usuarioNome = null,
-//                        criticalidade = 3,
-//                        servico = 1,
-//                        mensagemDeErro = "STEP 1: lote ${lote.id} transferência ${transferenciaBB.documentoDebito} atualizada com sucesso",
-//                        stackTrace = null
-//                    )
-//                )
-
-//                logClient.createLog(
-//                    CreateLogRequestDto(
-//                        header = headerBody,
-//                        aplicacao = 4,
-//                        classe = this::class.java.simpleName,
-//                        metodo = "executar",
-//                        parametros = "[${transferenciaBB.erros}]",
-//                        usuarioCodigo = null,
-//                        usuarioNome = null,
-//                        criticalidade = 3,
-//                        servico = 1,
-//                        mensagemDeErro = "STEP 1: lote ${lote.id} transferência ${transferenciaBB.documentoDebito} com ${transferenciaBB.erros.size} erros",
-//                        stackTrace = null
-//                    )
-//                )
+                bBTransferenciaEntityRepository.save(dbTransferencia.atualizarRegistro(transferenciaBB))
 
                 bBTransferenciaErroEntityRepository.saveAll(
                     transferenciaBB
@@ -224,19 +88,6 @@ class EnviarLoteService(
             }
         } else {
             logger.error("STEP 1: TIVEMOS UM ERRO AO ENVIAR O LOTE ${lote.id!!}")
-//            CreateLogRequestDto(
-//                header = headerBody,
-//                aplicacao = 4,
-//                classe = this::class.java.simpleName,
-//                metodo = "executar",
-//                parametros = "[${lote.id!!}]",
-//                usuarioCodigo = null,
-//                usuarioNome = null,
-//                criticalidade = 1,
-//                servico = 1,
-//                mensagemDeErro = "STEP 1: TIVEMOS UM ERRO AO ENVIAR O LOTE ${lote.id!!} - ${response?.statusCode} - ${response?.body} - LOTE NÃO ENVIADO",
-//                stackTrace = null
-//            )
         }
     }
 }

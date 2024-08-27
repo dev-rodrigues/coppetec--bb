@@ -2,7 +2,6 @@ package br.com.ufrj.coppetecpagamentos.application.port.inbound.bb
 
 import br.com.ufrj.coppetecpagamentos.application.port.outbound.BBConsultarExtrato
 import br.com.ufrj.coppetecpagamentos.domain.service.ExtratoService
-import br.com.ufrj.coppetecpagamentos.infrastruscture.client.LogClient
 import br.com.ufrj.coppetecpagamentos.infrastruscture.http.dto.response.BBConsultaExtratoResponseDto
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping

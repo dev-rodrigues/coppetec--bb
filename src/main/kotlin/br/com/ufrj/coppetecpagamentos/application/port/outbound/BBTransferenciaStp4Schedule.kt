@@ -1,7 +1,6 @@
 package br.com.ufrj.coppetecpagamentos.application.port.outbound
 
 import br.com.ufrj.coppetecpagamentos.domain.service.ConsultarLoteService
-import br.com.ufrj.coppetecpagamentos.infrastruscture.client.LogClient
 import br.com.ufrj.coppetecpagamentos.infrastruscture.http.port.BBPort
 import br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.BBTransferenciaEntityRepository
 import br.com.ufrj.coppetecpagamentos.infrastruscture.persistence.RemessaEletronicaAtualizacoesTEDRepository
@@ -17,7 +16,6 @@ class BBTransferenciaStp4Schedule(
     private val repository: RemessaEletronicaAtualizacoesTEDRepository,
     private val bbTransferenciasRepository: BBTransferenciaEntityRepository,
     private val bbPort: BBPort,
-    private val logClient: LogClient,
 ) {
 
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
@@ -36,7 +34,6 @@ class BBTransferenciaStp4Schedule(
 
         try {
             isRunning = true
-//            val headerBody = logClient.getHeader().body
             val remessas = repository.getRemessasEletronicasAtualizacoesTED()
 
             if (remessas.isEmpty()) {
@@ -51,7 +48,6 @@ class BBTransferenciaStp4Schedule(
                 val transferencia = bbPort.consultarTransferencia(
                     identificadorTransferencia = it.identificadorTransferencia,
                     accessToken = requireNotNull(token.body?.accessToken),
-//                    header = headerBody.id
                 )
 
                 if (nonNull(transferencia)) {
@@ -63,7 +59,6 @@ class BBTransferenciaStp4Schedule(
                             transferencia = transferenciaEntity,
                             lote = transferenciaEntity.lote!!,
                             bbTransferencia = transferencia!!,
-//                            header = headerBody.id
                         )
                     }
                 }

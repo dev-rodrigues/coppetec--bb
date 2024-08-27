@@ -2,14 +2,12 @@ package br.com.ufrj.coppetecpagamentos.infrastruscture.http.port.impl
 
 import br.com.ufrj.coppetecpagamentos.domain.exception.BadRequestExtratoException
 import br.com.ufrj.coppetecpagamentos.domain.model.API
-import br.com.ufrj.coppetecpagamentos.domain.model.CreateLogRequestDto
 import br.com.ufrj.coppetecpagamentos.domain.model.HttpUri
 import br.com.ufrj.coppetecpagamentos.domain.model.HttpUri.*
 import br.com.ufrj.coppetecpagamentos.domain.model.TipoHeader
 import br.com.ufrj.coppetecpagamentos.domain.model.TipoHeader.AUTENTICACAO
 import br.com.ufrj.coppetecpagamentos.domain.model.TipoHeader.CONSULTA_AUTENTICADO
 import br.com.ufrj.coppetecpagamentos.domain.property.BBProperties
-import br.com.ufrj.coppetecpagamentos.infrastruscture.client.LogClient
 import br.com.ufrj.coppetecpagamentos.infrastruscture.http.dto.request.BBTransferirRequest
 import br.com.ufrj.coppetecpagamentos.infrastruscture.http.dto.response.*
 import br.com.ufrj.coppetecpagamentos.infrastruscture.http.middleware.RestTemplateProxy
@@ -38,7 +36,6 @@ class BBPortImpl(
     private val client: RestTemplate,
     private val proxy: RestTemplateProxy,
     private val mapper: ObjectMapper,
-    private val logClient: LogClient,
 ) : BBPort {
 
     private val logger = LoggerFactory.getLogger(BBPortImpl::class.java)
@@ -59,21 +56,6 @@ class BBPortImpl(
             response!!
         } else {
             logger.error("Erro ao autenticar")
-//            logClient.createLog(
-//                    CreateLogRequestDto(
-//                            header = header,
-//                            aplicacao = 1,
-//                            classe = this::class.java.simpleName,
-//                            metodo = "autenticar",
-//                            parametros = "[${AUTENTICAR}, ${getParameter(api)}]",
-//                            usuarioCodigo = null,
-//                            usuarioNome = null,
-//                            criticalidade = 1,
-//                            servico = 1,
-//                            mensagemDeErro = "Erro ao autenticar",
-//                            stackTrace = null
-//                    )
-//            )
 
             throw RuntimeException("Erro ao autenticar")
         }
@@ -82,7 +64,6 @@ class BBPortImpl(
     override fun consultarLote(
         idLote: BigInteger,
         accessToken: String,
-//        header: BigInteger
     ): ResponseEntity<BBConsultaLoteResponseDto>? {
         val response = proxy.execute(
             {
@@ -103,7 +84,6 @@ class BBPortImpl(
     override fun consultarTransferencia(
         identificadorTransferencia: BigInteger,
         accessToken: String,
-//        header: BigInteger
     ): BBConsultaTransferenciaResponseDto? {
         val response = proxy.execute(
             {
@@ -119,21 +99,6 @@ class BBPortImpl(
         return if (nonNull(response)) {
             return formatBBConsultaTransferenciaResponseDto(response!!)
         } else {
-//            logClient.createLog(
-//                    CreateLogRequestDto(
-//                            header = header,
-//                            aplicacao = 1,
-//                            classe = this::class.java.simpleName,
-//                            metodo = "consultarTransferencia",
-//                            parametros = "[${identificadorTransferencia}, $accessToken]",
-//                            usuarioCodigo = null,
-//                            usuarioNome = null,
-//                            criticalidade = 1,
-//                            servico = 1,
-//                            mensagemDeErro = "Erro ao consultar transferencia $identificadorTransferencia no banco do Brasil",
-//                            stackTrace = null
-//                    )
-//            )
             logger.error("Erro ao consultar transferencia")
             return null
         }
