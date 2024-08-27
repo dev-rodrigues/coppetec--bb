@@ -10,7 +10,7 @@
     </parent>
     <groupId>br.com.ufrj</groupId>
     <artifactId>coppetec--pagamentos</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <name>coppetec-pagamentos</name>
     <description>coppetec--pagamentos</description>
 

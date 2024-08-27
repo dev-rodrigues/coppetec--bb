@@ -1,5 +1,5 @@
 enable:
-  schedule: true
+  schedule: ${ENABLE_SCHEDULE_PAYMENT}
 
 spring:
   datasource:
